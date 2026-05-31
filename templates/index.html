@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destiny Weapon Perks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .weapon-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+            margin-bottom: 2rem;
+        }
+        .weapon-table th {
+            background-color: #3a3a3a;
+            padding: 8px;
+            font-size: 0.9em;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #4a4a4a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .weapon-table td {
+            padding: 8px;
+            background-color: #2a2a2a;
+            border-top: 1px solid #3a3a3a;
+            border-bottom: 1px solid #3a3a3a;
+            vertical-align: middle;
+        }
+        .weapon-table tr:hover td {
+            background-color: #333;
+        }
+        .weapon-table td:first-child {
+            border-left: 1px solid #3a3a3a;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+        .weapon-table td:last-child {
+            border-right: 1px solid #3a3a3a;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+        .weapon-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .perk-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: #3a3a3a;
+            padding: 2px;
+            margin: 2px;
+        }
+        .perk-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .perk-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            border: 1px solid #4a4a4a;
+        }
+        .perk-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .perk-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #7aa5d2;
+        }
+        .weapon-name-cell {
+            min-width: 200px;
+        }
+        .weapon-type-cell {
+            min-width: 120px;
+        }
+        .damage-type-cell {
+            min-width: 100px;
+        }
+        .season-cell {
+            min-width: 80px;
+        }
+        .perk-cell {
+            min-width: 100px;
+            text-align: center;
+        }
+        .damage-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .damage-type.Arc {
+            background-color: #7AA3E5;
+        }
+        .damage-type.Solar {
+            background-color: #F2721B;
+        }
+        .damage-type.Void {
+            background-color: #B184C5;
+        }
+        .damage-type.Stasis {
+            background-color: #4D88FF;
+        }
+        .damage-type.Strand {
+            background-color: #3FA24F;
+        }
+        .damage-type.Kinetic {
+            background-color: #989898;
+        }
+        .filters {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-select {
+            background-color: #3a3a3a;
+            color: #fff;
+            border-color: #4a4a4a;
+        }
+        .form-select:focus {
+            background-color: #3a3a3a;
+            color: #fff;
+            border-color: #7aa5d2;
+            box-shadow: 0 0 0 0.25rem rgba(122, 165, 210, 0.25);
+        }
+        .form-select option {
+            background-color: #3a3a3a;
+            color: #fff;
+        }
+        .section-title {
+            color: #7aa5d2;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3a3a3a;
+        }
+        .season-badge {
+            background-color: #4a4a4a;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        /* Custom tab styling */
+        .nav-tabs {
+            border-bottom: 2px solid #3a3a3a;
+            margin-bottom: 20px;
+        }
+        .nav-tabs .nav-link {
+            color: #999;
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #fff;
+            border-color: #4a4a4a;
+        }
+        .nav-tabs .nav-link.active {
+            color: #7aa5d2;
+            background-color: transparent;
+            border-color: #7aa5d2;
+        }
+        .tab-content {
+            padding-top: 20px;
+        }
+        .duplicate-group {
+            border-bottom: 1px solid #3a3a3a;
+            margin-bottom: 1rem;
+        }
+        .duplicate-group:last-child {
+            border-bottom: none;
+        }
+        .duplicate-header {
+            background-color: #2a2a2a;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .duplicate-weapons {
+            padding: 0 1rem;
+        }
+        .weapon-row {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #333;
+        }
+        .weapon-row:last-child {
+            border-bottom: none;
+        }
+        .weapon-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .weapon-actions {
+            margin-left: 1rem;
+        }
+        /* Watermark Display Styles */
+        .watermark-sections {
+            padding: 20px;
+        }
+        .watermark-sections .section {
+            margin-bottom: 40px;
+        }
+        .watermark-sections h3 {
+            color: #7aa5d2;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3a3a3a;
+        }
+        .watermark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .watermark-item {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .watermark-item:hover {
+            transform: scale(1.05);
+        }
+        .watermark-image {
+            width: 50px;
+            height: 50px;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .watermark-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .watermark-info {
+            color: #999;
+            font-size: 0.9em;
+        }
+        .watermark-hash {
+            font-family: monospace;
+            font-size: 0.8em;
+            word-break: break-all;
+            color: #666;
+        }
+        .watermark-description {
+            color: #7aa5d2;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .watermark-item-type {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .item-info {
+            display: flex;
+            align-items: center;
+        }
+        .table-dark {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .table-dark thead th {
+            background-color: #2a2a2a;
+            border-bottom: 2px solid #3a3a3a;
+        }
+        .table-dark tbody tr:hover {
+            background-color: #2a2a2a;
+        }
+        .table-dark td {
+            vertical-align: middle;
+            border-top: 1px solid #3a3a3a;
+        }
+        .hash-cell {
+            font-family: monospace;
+            font-size: 0.8em;
+            color: #888;
+        }
+        .season-badge {
+            background-color: #4a4a4a;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .activity-badge {
+            background-color: #5a3a3a;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .description-cell {
+            max-width: 300px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .tooltip-text {
+            max-width: 200px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <h1 class="mb-4 text-center">Destiny Weapon Perks</h1>
+        <div class="table-container">
+            <div class="filters">
+                <div class="row">
+                    <div class="col-md-6">
+                        <select class="form-select" id="weaponTypeFilter">
+                            <option value="">All Weapon Types</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" id="damageTypeFilter">
+                            <option value="">All Damage Types</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-weapons-tab" data-bs-toggle="tab" data-bs-target="#all-weapons" type="button" role="tab">
+                        All Weapons
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="duplicates-tab" data-bs-toggle="tab" data-bs-target="#duplicates" type="button" role="tab">
+                        Duplicate Weapons
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="watermarks-tab" data-bs-toggle="tab" data-bs-target="#watermarks" type="button" role="tab">
+                        Watermarks
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- All Weapons Tab -->
+                <div class="tab-pane fade show active" id="all-weapons" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="weapon-table">
+                            <thead>
+                                <tr>
+                                    <th>Weapon</th>
+                                    <th>Type</th>
+                                    <th>Damage</th>
+                                    <th>Season</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weapons-container">
+                                <!-- Weapons will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Duplicates Tab -->
+                <div class="tab-pane fade" id="duplicates" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="weapon-table" id="duplicates-table">
+                            <thead>
+                                <tr>
+                                    <th>Weapon</th>
+                                    <th>Type</th>
+                                    <th>Damage</th>
+                                    <th>Season</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="duplicates-container">
+                                <!-- Duplicate weapons will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Watermarks Tab -->
+                <div class="tab-pane fade" id="watermarks" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Watermark</th>
+                                    <th>Item</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Season/Activity</th>
+                                    <th>Description</th>
+                                    <th>Hash</th>
+                                </tr>
+                            </thead>
+                            <tbody id="watermarks-table-body">
+                                <!-- Watermarks will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weapon Details Modal -->
+    <div class="modal fade" id="weaponModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="modalWeaponName"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <img id="modalWeaponIcon" class="img-fluid mb-2" style="max-width: 96px;">
+                            <div id="modalWeaponType" class="mb-1"></div>
+                            <div id="modalDamageType" class="mb-1"></div>
+                            <div id="modalAmmoType"></div>
+                            <div id="modalSeason" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-8">
+                            <div id="modalDescription" class="mb-3 text-muted"></div>
+                            <div id="modalFlavorText" class="fst-italic text-muted"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom border-secondary pb-2 mb-3">Stats</h6>
+                            <div id="modalStats" class="row"></div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="border-bottom border-secondary pb-2 mb-3">Perks</h6>
+                            <div id="modalPerks"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const COLUMN_NAMES = {
+            'Column_1215804697': 'Barrel',
+            'Column_1288200359': 'Magazine',
+            'Column_2218962841': 'Perk 1',
+            'Column_3362409147': 'Perk 2',
+            'Column_3399577066': 'Origin'
+        };
+
+        const COLUMN_ORDER = [
+            'Column_1215804697',
+            'Column_1288200359',
+            'Column_2218962841',
+            'Column_3362409147',
+            'Column_3399577066'
+        ];
+
+        const STAT_NAMES = {
+            '1240592695': 'Range',
+            '1480404414': 'Stability',
+            '1885944937': 'Handling',
+            '1935470627': 'Reload Speed',
+            '2715839340': 'Airborne Effectiveness',
+            '2961396640': 'Magazine',
+            '3555269338': 'Zoom',
+            '4043523819': 'Impact',
+            '4188031367': 'Accuracy',
+            '943549884': 'RPM',
+            '2714457168': 'Charge Time',
+            '3871231066': 'Draw Time',
+            '1931675084': 'Accuracy',
+            '1345609583': 'Aim Assist',
+            '155624089': 'Recoil Direction',
+            '3614673599': 'Blast Radius',
+            '2523465841': 'Velocity',
+            '2762071195': 'Guard Efficiency',
+            '209426660': 'Guard Resistance',
+            '2837207746': 'Swing Speed',
+            '3736848092': 'Shield Duration',
+            '447667954': 'Charge Rate'
+        };
+
+        let allWeapons = [];
+
+        function populateFilters(weapons) {
+            const weaponTypes = new Set();
+            const damageTypes = new Set();
+            
+            weapons.forEach(weapon => {
+                if (weapon.type) weaponTypes.add(weapon.type);
+                if (weapon.damage_type) damageTypes.add(weapon.damage_type);
+            });
+
+            const weaponTypeFilter = document.getElementById('weaponTypeFilter');
+            const damageTypeFilter = document.getElementById('damageTypeFilter');
+
+            [...weaponTypes].sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                weaponTypeFilter.appendChild(option);
+            });
+
+            [...damageTypes].sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                damageTypeFilter.appendChild(option);
+            });
+        }
+
+        function loadWeapons() {
+            fetch('/weapons')
+                .then(response => response.json())
+                .then(weapons => {
+                    // Store weapons globally
+                    allWeapons = weapons;
+                    
+                    // Update filters
+                    populateFilters(weapons);
+                    
+                    // Display all weapons
+                    const container = document.getElementById('weapons-container');
+                    container.innerHTML = '';
+                    
+                    weapons.forEach(weapon => {
+                        const row = document.createElement('tr');
+                        row.style.cursor = 'pointer';
+                        row.onclick = () => showWeaponDetails(weapon.hash);
+                        
+                        row.innerHTML = `
+                            <td class="weapon-name-cell">
+                                <div class="d-flex align-items-center">
+                                    <img src="${weapon.icon_url}" class="weapon-icon" alt="${weapon.name}" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                                    <span>${weapon.name}</span>
+                                </div>
+                            </td>
+                            <td class="weapon-type-cell">${weapon.type || ''}</td>
+                            <td class="damage-type-cell">
+                                <span class="damage-type ${weapon.damage_type}">${weapon.damage_type || ''}</span>
+                            </td>
+                            <td class="season-cell">
+                                <span class="season-badge">${weapon.season ? `Season ${weapon.season}` : 'Unknown'}</span>
+                            </td>
+                        `;
+                        
+                        container.appendChild(row);
+                    });
+                });
+        }
+
+        function loadDuplicates() {
+            const container = document.getElementById('duplicates-container');
+            container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+
+            fetch('/duplicates')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(duplicates => {
+                    container.innerHTML = '';
+                    
+                    if (duplicates.length === 0) {
+                        container.innerHTML = '<div class="text-center text-muted">No duplicate weapons found</div>';
+                        return;
+                    }
+
+                    duplicates.forEach(dup => {
+                        const duplicateGroup = document.createElement('div');
+                        duplicateGroup.className = 'duplicate-group';
+                        
+                        // Create header with weapon name and count
+                        const header = document.createElement('div');
+                        header.className = 'duplicate-header';
+                        header.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">${dup.name}</h5>
+                                <span class="badge bg-primary">${dup.count} versions</span>
+                            </div>
+                        `;
+                        duplicateGroup.appendChild(header);
+
+                        // Create container for weapon rows
+                        const weaponsContainer = document.createElement('div');
+                        weaponsContainer.className = 'duplicate-weapons';
+
+                        // Sort weapons by season (newest first)
+                        dup.weapons.sort((a, b) => (b.season || 0) - (a.season || 0));
+                        
+                        dup.weapons.forEach(weapon => {
+                            const weaponRow = document.createElement('div');
+                            weaponRow.className = 'weapon-row';
+                            weaponRow.innerHTML = `
+                                <div class="weapon-info">
+                                    <div class="weapon-type">${weapon.type || 'Unknown Type'}</div>
+                                    <div class="damage-type">
+                                        <span class="damage-type ${weapon.damage_type || ''}">${weapon.damage_type || 'Unknown'}</span>
+                                    </div>
+                                    <div class="season-badge">${weapon.season ? `Season ${weapon.season}` : 'Unknown'}</div>
+                                </div>
+                                <div class="weapon-actions">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showWeaponDetails('${weapon.hash}')">
+                                        View Details
+                                    </button>
+                                </div>
+                            `;
+                            weaponsContainer.appendChild(weaponRow);
+                        });
+
+                        duplicateGroup.appendChild(weaponsContainer);
+                        container.appendChild(duplicateGroup);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading duplicates:', error);
+                    container.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            Error loading duplicate weapons. Please try again later.
+                        </div>
+                    `;
+                });
+        }
+
+        function loadWatermarks() {
+            fetch('/watermarks')
+                .then(response => response.json())
+                .then(watermarks => {
+                    const tableBody = document.getElementById('watermarks-table-body');
+                    tableBody.innerHTML = '';
+
+                    watermarks.forEach(watermark => {
+                        const row = document.createElement('tr');
+                        
+                        // Watermark column
+                        const watermarkCell = document.createElement('td');
+                        watermarkCell.innerHTML = `
+                            <div class="watermark-image">
+                                <img src="https://www.bungie.net${watermark.watermark_path}" alt="Watermark">
+                            </div>
+                        `;
+                        
+                        // Item column
+                        const itemCell = document.createElement('td');
+                        itemCell.innerHTML = `
+                            <div class="item-info">
+                                <img src="https://www.bungie.net${watermark.item_icon}" class="item-icon" alt="${watermark.item_name}">
+                                <span>${watermark.item_name || 'Unknown'}</span>
+                            </div>
+                        `;
+                        
+                        // Type column
+                        const typeCell = document.createElement('td');
+                        typeCell.textContent = getItemTypeName(watermark.item_type);
+                        
+                        // Category column
+                        const categoryCell = document.createElement('td');
+                        categoryCell.textContent = watermark.type;
+                        
+                        // Season/Activity column
+                        const seasonCell = document.createElement('td');
+                        if (watermark.type === 'Season') {
+                            seasonCell.innerHTML = `<span class="season-badge">Season ${watermark.season_number}</span>`;
+                        } else if (watermark.type === 'Activity') {
+                            seasonCell.innerHTML = `<span class="activity-badge">${watermark.description}</span>`;
+                        } else {
+                            seasonCell.textContent = 'Unknown';
+                        }
+                        
+                        // Description column
+                        const descriptionCell = document.createElement('td');
+                        descriptionCell.className = 'description-cell';
+                        const description = watermark.watermark_description || watermark.item_description || '';
+                        if (description.length > 100) {
+                            descriptionCell.innerHTML = `
+                                <div class="perk-tooltip">
+                                    ${description.substring(0, 100)}...
+                                    <div class="tooltip-text">${description}</div>
+                                </div>
+                            `;
+                        } else {
+                            descriptionCell.textContent = description;
+                        }
+                        
+                        // Hash column
+                        const hashCell = document.createElement('td');
+                        hashCell.className = 'hash-cell';
+                        hashCell.textContent = watermark.watermark_hash;
+                        
+                        // Add all cells to the row
+                        row.appendChild(watermarkCell);
+                        row.appendChild(itemCell);
+                        row.appendChild(typeCell);
+                        row.appendChild(categoryCell);
+                        row.appendChild(seasonCell);
+                        row.appendChild(descriptionCell);
+                        row.appendChild(hashCell);
+                        
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading watermarks:', error);
+                });
+        }
+
+        // Initial load
+        loadWeapons();
+        loadDuplicates();
+        loadWatermarks();
+
+        // Add filter event listeners
+        document.getElementById('weaponTypeFilter').addEventListener('change', filterWeapons);
+        document.getElementById('damageTypeFilter').addEventListener('change', filterWeapons);
+
+        function showWeaponDetails(weaponHash) {
+            fetch(`/weapon/${weaponHash}`)
+                .then(response => response.json())
+                .then(weapon => {
+                    // Update modal content
+                    document.getElementById('modalWeaponName').textContent = weapon.name;
+                    document.getElementById('modalWeaponIcon').src = weapon.icon_url;
+                    document.getElementById('modalWeaponType').textContent = weapon.type;
+                    document.getElementById('modalDamageType').innerHTML = `
+                        <span class="damage-type ${weapon.damage_type}">${weapon.damage_type}</span>
+                    `;
+                    document.getElementById('modalAmmoType').textContent = weapon.ammo_type;
+                    document.getElementById('modalSeason').textContent = weapon.season ? `Season ${weapon.season}` : 'No Season';
+                    document.getElementById('modalDescription').textContent = weapon.description;
+                    document.getElementById('modalFlavorText').textContent = weapon.flavor_text;
+
+                    // Update stats
+                    const statsContainer = document.getElementById('modalStats');
+                    statsContainer.innerHTML = '';
+                    for (const [statName, value] of Object.entries(weapon.stats)) {
+                        const displayName = STAT_NAMES[statName.replace('Stat_', '')] || statName;
+                        const statDiv = document.createElement('div');
+                        statDiv.className = 'col-md-6 mb-2';
+                        statDiv.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>${displayName}</span>
+                                <span class="text-muted">${value}</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-info" style="width: ${value}%"></div>
+                            </div>
+                        `;
+                        statsContainer.appendChild(statDiv);
+                    }
+
+                    // Update perks
+                    const perksContainer = document.getElementById('modalPerks');
+                    perksContainer.innerHTML = '';
+                    
+                    // Only show columns that are in our COLUMN_NAMES mapping
+                    COLUMN_ORDER.forEach(column => {
+                        if (!weapon.perks[column]) return;
+                        
+                        const columnName = COLUMN_NAMES[column];
+                        if (!columnName) return;
+                        
+                        const columnDiv = document.createElement('div');
+                        columnDiv.className = 'mb-4';
+                        columnDiv.innerHTML = `
+                            <h6 class="mb-2">${columnName}</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                ${weapon.perks[column].map(perk => `
+                                    <div class="perk-tooltip">
+                                        <img src="${perk.icon_url}" class="perk-icon" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                                        <div class="tooltip-text">
+                                            <div class="perk-name">${perk.name}</div>
+                                            <div>${perk.description}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                        perksContainer.appendChild(columnDiv);
+                    });
+
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('weaponModal'));
+                    modal.show();
+                });
+        }
+
+        function getItemTypeName(type) {
+            const itemTypes = {
+                3: 'Weapon',
+                2: 'Armor',
+                4: 'Ghost Shell',
+                19: 'Perk',
+                20: 'Mod',
+                21: 'Emote',
+                22: 'Shader',
+                23: 'Ornament',
+                24: 'Emblem',
+                25: 'Emblem Modifier',
+                26: 'Finisher',
+                27: 'Transmat Effect',
+                28: 'Clan Banner',
+                29: 'Aura',
+                30: 'Projection',
+                31: 'Ghost Projection',
+                32: 'Ghost Mod',
+                33: 'Ghost Shell Mod',
+                34: 'Ghost Shell Ornament',
+                35: 'Ghost Shell Perk',
+                36: 'Ghost Shell Trait',
+                37: 'Ghost Shell Mod',
+                38: 'Ghost Shell Ornament',
+                39: 'Ghost Shell Perk',
+                40: 'Ghost Shell Trait'
+            };
+            return itemTypes[type] || `Unknown (${type})`;
+        }
+    </script>
+</body>
+</html>
