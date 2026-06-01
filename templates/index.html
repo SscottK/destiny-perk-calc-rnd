@@ -32,6 +32,22 @@
             top: 0;
             z-index: 10;
         }
+        .weapon-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .weapon-table th.sortable:hover {
+            color: #ccc;
+            background-color: #444;
+        }
+        .weapon-table th.sortable.sort-active {
+            color: #fff;
+        }
+        .weapon-table th .sort-indicator {
+            font-size: 0.75em;
+            opacity: 0.85;
+        }
         .weapon-table td {
             padding: 8px;
             background-color: #2a2a2a;
@@ -57,6 +73,52 @@
             height: 48px;
             border-radius: 4px;
             margin-right: 10px;
+        }
+        .weapon-icon-wrap {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        .weapon-icon-wrap .weapon-icon {
+            margin-right: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .weapon-icon-wrap--lg {
+            width: 64px;
+            height: 64px;
+            border-radius: 6px;
+        }
+        /* Season badge overlay — matches Destiny Item Manager (ItemIcon.m.scss) */
+        .weapon-watermark-shadow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 1;
+            opacity: calc(1 / 1.4);
+        }
+        .weapon-watermark-overlay {
+            position: absolute;
+            top: calc(0.5 / 50 * 100%);
+            left: calc(0.5 / 50 * 100%);
+            width: calc(11 / 50 * 100%);
+            height: calc(11 / 50 * 100%);
+            object-fit: contain;
+            object-position: center;
+            opacity: 1;
+            z-index: 2;
+            pointer-events: none;
         }
         .perk-icon {
             width: 40px;
@@ -103,11 +165,48 @@
         .weapon-type-cell {
             min-width: 120px;
         }
+        .frame-cell {
+            min-width: 110px;
+        }
         .damage-type-cell {
             min-width: 100px;
         }
         .season-cell {
             min-width: 80px;
+        }
+        .uniqueness-cell {
+            min-width: 120px;
+            white-space: nowrap;
+        }
+        .uniqueness-scores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .uniqueness-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.72rem;
+            line-height: 1.2;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid #3a3a3a;
+            background: #242424;
+            color: #ddd;
+        }
+        .uniqueness-pill .label {
+            color: #888;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .uniqueness-pill.total {
+            border-color: #4a6fa5;
+            background: #1f2a3a;
+        }
+        .sidebar-uniqueness {
+            margin-top: 0.5rem;
         }
         .perk-cell {
             min-width: 100px;
@@ -197,38 +296,19 @@
         .tab-content {
             padding-top: 20px;
         }
-        .duplicate-group {
-            border-bottom: 1px solid #3a3a3a;
-            margin-bottom: 1rem;
-        }
-        .duplicate-group:last-child {
-            border-bottom: none;
-        }
-        .duplicate-header {
+        .duplicate-header-row td {
             background-color: #2a2a2a;
-            padding: 0.5rem 1rem;
-            margin-bottom: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #3a3a3a;
         }
-        .duplicate-weapons {
-            padding: 0 1rem;
+        .duplicate-header-row h5 {
+            color: #7aa5d2;
         }
-        .weapon-row {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #333;
+        .duplicate-weapon-row td {
+            padding-left: 1.5rem;
         }
-        .weapon-row:last-child {
-            border-bottom: none;
-        }
-        .weapon-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .weapon-actions {
-            margin-left: 1rem;
+        .duplicate-weapon-row:last-of-type td {
+            border-bottom: 2px solid #3a3a3a;
         }
         /* Watermark Display Styles */
         .watermark-sections {
@@ -347,9 +427,190 @@
             white-space: normal;
             word-wrap: break-word;
         }
+        .perk-columns-row {
+            display: grid;
+            gap: 6px;
+            width: 100%;
+        }
+        .perk-column {
+            min-width: 0;
+        }
+        .perk-column h6 {
+            color: #7aa5d2;
+            text-align: center;
+            font-size: 0.72em;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #3a3a3a;
+            line-height: 1.2;
+        }
+        .perk-column .perk-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3px;
+        }
+        .weapon-sidebar .perk-icon {
+            width: 26px;
+            height: 26px;
+            margin: 0;
+            padding: 1px;
+        }
+        .weapon-sidebar .perk-tooltip .tooltip-text {
+            font-size: 12px;
+            width: 180px;
+            margin-left: -90px;
+        }
+        /* Right sidebar */
+        .page-wrapper {
+            position: relative;
+        }
+        .weapon-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(540px, 100vw);
+            height: 100vh;
+            background: #1e1e1e;
+            border-left: 2px solid #3a3a3a;
+            box-shadow: -8px 0 24px rgba(0, 0, 0, 0.45);
+            transform: translateX(100%);
+            transition: transform 0.28s ease;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+        }
+        body.sidebar-open .weapon-sidebar {
+            transform: translateX(0);
+        }
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.28s ease;
+            z-index: 1040;
+        }
+        body.sidebar-open .sidebar-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 1.25rem 1.25rem 0.75rem;
+            border-bottom: 1px solid #3a3a3a;
+            background: #242424;
+        }
+        .sidebar-header h5 {
+            color: #7aa5d2;
+            margin: 0;
+        }
+        .sidebar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 1.25rem 1.5rem;
+        }
+        .sidebar-hint {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #bbb;
+            margin-bottom: 1rem;
+        }
+        .sidebar-hint strong {
+            color: #7aa5d2;
+        }
+        .version-accordion-item {
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: #242424;
+        }
+        .version-accordion-item.open {
+            border-color: #7aa5d2;
+        }
+        .version-accordion-header {
+            width: 100%;
+            background: #2a2a2a;
+            border: none;
+            color: #fff;
+            padding: 0.9rem 1rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+        .version-accordion-header:hover {
+            background: #333;
+        }
+        .version-accordion-item.open .version-accordion-header {
+            background: #2f3640;
+        }
+        .version-chevron {
+            color: #7aa5d2;
+            font-size: 0.85rem;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        .version-accordion-item.open .version-chevron {
+            transform: rotate(90deg);
+        }
+        .version-header-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .version-header-title {
+            font-weight: 600;
+            color: #fff;
+        }
+        .version-header-subtitle {
+            font-size: 0.82rem;
+            color: #999;
+            margin-top: 2px;
+        }
+        .version-accordion-body {
+            display: none;
+            padding: 1rem;
+            border-top: 1px solid #3a3a3a;
+            background: #1e1e1e;
+        }
+        .version-accordion-item.open .version-accordion-body {
+            display: block;
+        }
+        .sidebar-stats {
+            margin-bottom: 0.75rem;
+        }
+        .sidebar-stats .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            margin-bottom: 0.25rem;
+        }
+        .perk-view-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .perk-view-buttons .btn {
+            font-size: 0.78rem;
+        }
+        .weapon-table tr.selected-row td {
+            background-color: #2f3640 !important;
+            box-shadow: inset 3px 0 0 #7aa5d2;
+        }
     </style>
 </head>
 <body>
+    <div class="page-wrapper">
     <div class="container-fluid mt-4">
         <h1 class="mb-4 text-center">Destiny Weapon Perks</h1>
         <div class="table-container">
@@ -368,16 +629,10 @@
                 </div>
             </div>
 
-            <!-- Tabs -->
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="all-weapons-tab" data-bs-toggle="tab" data-bs-target="#all-weapons" type="button" role="tab">
                         All Weapons
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="duplicates-tab" data-bs-toggle="tab" data-bs-target="#duplicates" type="button" role="tab">
-                        Duplicate Weapons
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -387,48 +642,26 @@
                 </li>
             </ul>
 
-            <!-- Tab Content -->
             <div class="tab-content">
-                <!-- All Weapons Tab -->
                 <div class="tab-pane fade show active" id="all-weapons" role="tabpanel">
+                    <p class="text-muted small mb-3">One row per weapon family. Click a row to open release details in the panel on the right.</p>
                     <div class="table-responsive">
                         <table class="weapon-table">
                             <thead>
-                                <tr>
-                                    <th>Weapon</th>
-                                    <th>Type</th>
-                                    <th>Damage</th>
-                                    <th>Season</th>
+                                <tr id="weapons-table-head">
+                                    <th class="sortable sort-active" data-sort="weapon" data-sort-dir="asc" scope="col" tabindex="0">Weapon<span class="sort-indicator"> ▲</span></th>
+                                    <th class="sortable" data-sort="type" scope="col" tabindex="0">Type<span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="frame" scope="col" tabindex="0">Frame<span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="versions" scope="col" tabindex="0">Versions<span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="seasons" scope="col" tabindex="0">Seasons<span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="uniqueness" scope="col" tabindex="0">Uniqueness<span class="sort-indicator"></span></th>
                                 </tr>
                             </thead>
-                            <tbody id="weapons-container">
-                                <!-- Weapons will be loaded here -->
-                            </tbody>
+                            <tbody id="weapons-container"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Duplicates Tab -->
-                <div class="tab-pane fade" id="duplicates" role="tabpanel">
-                    <div class="table-responsive">
-                        <table class="weapon-table" id="duplicates-table">
-                            <thead>
-                                <tr>
-                                    <th>Weapon</th>
-                                    <th>Type</th>
-                                    <th>Damage</th>
-                                    <th>Season</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="duplicates-container">
-                                <!-- Duplicate weapons will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Watermarks Tab -->
                 <div class="tab-pane fade" id="watermarks" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-dark table-hover">
@@ -453,99 +686,189 @@
         </div>
     </div>
 
-    <!-- Weapon Details Modal -->
-    <div class="modal fade" id="weaponModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-light">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="modalWeaponName"></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-4">
-                        <div class="col-md-4 text-center">
-                            <img id="modalWeaponIcon" class="img-fluid mb-2" style="max-width: 96px;">
-                            <div id="modalWeaponType" class="mb-1"></div>
-                            <div id="modalDamageType" class="mb-1"></div>
-                            <div id="modalAmmoType"></div>
-                            <div id="modalSeason" class="mt-2"></div>
-                        </div>
-                        <div class="col-md-8">
-                            <div id="modalDescription" class="mb-3 text-muted"></div>
-                            <div id="modalFlavorText" class="fst-italic text-muted"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h6 class="border-bottom border-secondary pb-2 mb-3">Stats</h6>
-                            <div id="modalStats" class="row"></div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="border-bottom border-secondary pb-2 mb-3">Perks</h6>
-                            <div id="modalPerks"></div>
-                        </div>
-                    </div>
-                </div>
+    <aside class="weapon-sidebar" id="weaponSidebar" aria-hidden="true">
+        <div class="sidebar-header">
+            <div>
+                <h5 id="sidebarTitle">Weapon</h5>
+                <div id="sidebarSubtitle" class="small text-muted mt-1"></div>
             </div>
+            <button type="button" class="btn-close btn-close-white" id="sidebarCloseBtn" aria-label="Close"></button>
         </div>
+        <div class="sidebar-body">
+            <div class="sidebar-hint">
+                <strong>Select a release</strong> to update stats and perks.
+            </div>
+            <div class="mb-3">
+                <label for="sidebarVersionSelect" class="form-label small text-muted mb-1">Release</label>
+                <select id="sidebarVersionSelect" class="form-select form-select-sm"></select>
+            </div>
+            <div id="sidebarVersionCard"></div>
+        </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const COLUMN_NAMES = {
-            'Column_1215804697': 'Barrel',
-            'Column_1288200359': 'Magazine',
-            'Column_2218962841': 'Perk 1',
-            'Column_3362409147': 'Perk 2',
-            'Column_3399577066': 'Origin'
-        };
-
-        const COLUMN_ORDER = [
-            'Column_1215804697',
-            'Column_1288200359',
-            'Column_2218962841',
-            'Column_3362409147',
-            'Column_3399577066'
+        const STAT_DISPLAY_ORDER = [
+            'Impact', 'Blast Radius', 'Velocity', 'Range', 'Stability', 'Handling',
+            'Reload Speed', 'Magazine', 'Rounds Per Minute', 'Charge Time', 'Draw Time',
+            'Accuracy', 'Aim Assistance', 'Recoil Direction', 'Zoom',
+            'Airborne Effectiveness', 'Inventory Size', 'Charge Rate',
+            'Guard Efficiency', 'Guard Resistance', 'Swing Speed', 'Shield Duration', 'Ammo Capacity'
         ];
 
-        const STAT_NAMES = {
-            '1240592695': 'Range',
-            '1480404414': 'Stability',
-            '1885944937': 'Handling',
-            '1935470627': 'Reload Speed',
-            '2715839340': 'Airborne Effectiveness',
-            '2961396640': 'Magazine',
-            '3555269338': 'Zoom',
-            '4043523819': 'Impact',
-            '4188031367': 'Accuracy',
-            '943549884': 'RPM',
-            '2714457168': 'Charge Time',
-            '3871231066': 'Draw Time',
-            '1931675084': 'Accuracy',
-            '1345609583': 'Aim Assist',
-            '155624089': 'Recoil Direction',
-            '3614673599': 'Blast Radius',
-            '2523465841': 'Velocity',
-            '2762071195': 'Guard Efficiency',
-            '209426660': 'Guard Resistance',
-            '2837207746': 'Swing Speed',
-            '3736848092': 'Shield Duration',
-            '447667954': 'Charge Rate'
+        let allFamilies = [];
+        let currentWeaponFamily = null;
+        let selectedFamilyName = null;
+        let sortState = { column: 'weapon', direction: 'asc' };
+
+        const SORT_COLUMNS = {
+            weapon: {
+                defaultDir: 'asc',
+                getValue(family) { return (family.family_name || '').toLowerCase(); },
+            },
+            type: {
+                defaultDir: 'asc',
+                getValue(family) { return (family.type || '').toLowerCase(); },
+            },
+            frame: {
+                defaultDir: 'asc',
+                getValue(family) { return formatFrameLabel(family.archetype).toLowerCase(); },
+            },
+            versions: {
+                defaultDir: 'desc',
+                getValue(family) { return family.count || 1; },
+            },
+            seasons: {
+                defaultDir: 'desc',
+                getValue(family) {
+                    const seasons = family.seasons || [];
+                    return seasons.length ? seasons[0] : 0;
+                },
+            },
+            uniqueness: {
+                defaultDir: 'desc',
+                getValue(family) { return Number(family.total_uniqueness) || 0; },
+            },
         };
 
-        let allWeapons = [];
+        function formatFrameLabel(archetype) {
+            if (!archetype || archetype === 'Unknown') return 'Unknown';
+            return archetype.endsWith(' Frame') ? archetype : `${archetype} Frame`;
+        }
 
-        function populateFilters(weapons) {
+        function compareFamilies(a, b) {
+            const sorter = SORT_COLUMNS[sortState.column] || SORT_COLUMNS.weapon;
+            const aVal = sorter.getValue(a);
+            const bVal = sorter.getValue(b);
+            let cmp = 0;
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                cmp = aVal - bVal;
+            } else {
+                cmp = String(aVal).localeCompare(String(bVal));
+            }
+            return sortState.direction === 'asc' ? cmp : -cmp;
+        }
+
+        function sortFamilies(families) {
+            return [...families].sort(compareFamilies);
+        }
+
+        function updateSortHeaderIndicators() {
+            document.querySelectorAll('#weapons-table-head th[data-sort]').forEach(th => {
+                const column = th.dataset.sort;
+                const isActive = column === sortState.column;
+                th.classList.toggle('sort-active', isActive);
+                th.dataset.sortDir = isActive ? sortState.direction : '';
+                const indicator = th.querySelector('.sort-indicator');
+                if (indicator) {
+                    indicator.textContent = isActive
+                        ? (sortState.direction === 'asc' ? ' ▲' : ' ▼')
+                        : '';
+                }
+            });
+        }
+
+        function setSortColumn(column) {
+            if (!SORT_COLUMNS[column]) return;
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = SORT_COLUMNS[column].defaultDir;
+            }
+            updateSortHeaderIndicators();
+            filterWeapons();
+        }
+
+        function initSortableHeaders() {
+            document.querySelectorAll('#weapons-table-head th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => setSortColumn(th.dataset.sort));
+                th.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSortColumn(th.dataset.sort);
+                    }
+                });
+            });
+            updateSortHeaderIndicators();
+        }
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderWatermarkOverlay(watermarkUrl, shadowUrl) {
+            if (!watermarkUrl) return '';
+            const shadow = shadowUrl
+                ? `<div class="weapon-watermark-shadow" style="background-image:url('${escapeHtml(shadowUrl)}')"></div>`
+                : '';
+            return `${shadow}<img src="${escapeHtml(watermarkUrl)}" class="weapon-watermark-overlay" alt="" onerror="this.style.display='none'">`;
+        }
+
+        function formatScore(value) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return '0';
+            return num.toFixed(2);
+        }
+
+        function renderUniquenessScores(scores, compact = false) {
+            const frame = formatScore(scores?.frame_uniqueness);
+            const perk = formatScore(scores?.perk_uniqueness);
+            const total = formatScore(scores?.total_uniqueness);
+            if (Number(scores?.frame_uniqueness) === 0
+                && Number(scores?.perk_uniqueness) === 0
+                && Number(scores?.total_uniqueness) === 0) {
+                return compact
+                    ? '<span class="text-muted small">—</span>'
+                    : '<span class="text-muted small">Uniqueness scores apply to the most recent release only.</span>';
+            }
+            if (compact) {
+                return `<span class="uniqueness-pill total" title="Frame ${frame} · Perk ${perk} · Total ${total}"><span class="label">U</span>${total}</span>`;
+            }
+            return `
+                <div class="uniqueness-scores">
+                    <span class="uniqueness-pill" title="Frame uniqueness"><span class="label">Frame</span>${frame}</span>
+                    <span class="uniqueness-pill" title="Perk uniqueness (sockets 2+3)"><span class="label">Perk</span>${perk}</span>
+                    <span class="uniqueness-pill total" title="Total uniqueness"><span class="label">Total</span>${total}</span>
+                </div>
+            `;
+        }
+
+        function populateFilters(families) {
             const weaponTypes = new Set();
             const damageTypes = new Set();
-            
-            weapons.forEach(weapon => {
-                if (weapon.type) weaponTypes.add(weapon.type);
-                if (weapon.damage_type) damageTypes.add(weapon.damage_type);
+
+            families.forEach(family => {
+                if (family.type) weaponTypes.add(family.type);
+                if (family.damage_type) damageTypes.add(family.damage_type);
             });
 
             const weaponTypeFilter = document.getElementById('weaponTypeFilter');
@@ -566,118 +889,341 @@
             });
         }
 
+        function renderWeaponRows(families) {
+            const container = document.getElementById('weapons-container');
+            container.innerHTML = '';
+
+            families.forEach(family => {
+                const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+                row.dataset.familyName = family.family_name;
+                if (selectedFamilyName === family.family_name) {
+                    row.classList.add('selected-row');
+                }
+
+                const versionLabel = family.has_multiple_versions
+                    ? `${family.count} releases`
+                    : '1 release';
+                const subtitle = family.has_multiple_versions
+                    ? family.variants_label
+                    : (family.seasons_label || 'Unknown');
+                const primaryVersion = (family.versions || [])[0] || null;
+                const rowWatermarkUrl = family.list_watermark_url || primaryVersion?.watermark_url || '';
+                const rowWatermarkShadowUrl = family.list_watermark_shadow_url || primaryVersion?.watermark_shadow_url || '';
+
+                row.innerHTML = `
+                    <td class="weapon-name-cell">
+                        <div class="d-flex align-items-center">
+                            <div class="weapon-icon-wrap">
+                                <img src="${escapeHtml(family.icon_url)}" class="weapon-icon" alt="${escapeHtml(family.family_name)}" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                                ${renderWatermarkOverlay(rowWatermarkUrl, rowWatermarkShadowUrl)}
+                            </div>
+                            <div>
+                                <div>${escapeHtml(family.family_name)}</div>
+                                <div class="small text-muted">${escapeHtml(subtitle)}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="weapon-type-cell">${escapeHtml(family.type || '')}</td>
+                    <td class="frame-cell">${escapeHtml(formatFrameLabel(family.archetype))}</td>
+                    <td><span class="badge ${family.has_multiple_versions ? 'bg-primary' : 'bg-secondary'}">${escapeHtml(versionLabel)}</span></td>
+                    <td class="season-cell"><span class="season-badge">${escapeHtml(family.seasons_label)}</span></td>
+                    <td class="uniqueness-cell">${renderUniquenessScores(family, true)}</td>
+                `;
+
+                row.onclick = () => openWeaponFamily(family.family_name);
+                container.appendChild(row);
+            });
+        }
+
+        function filterWeapons() {
+            const typeFilter = document.getElementById('weaponTypeFilter').value;
+            const damageFilter = document.getElementById('damageTypeFilter').value;
+
+            const filtered = allFamilies.filter(family => {
+                if (typeFilter && family.type !== typeFilter) return false;
+                if (damageFilter && family.damage_type !== damageFilter) return false;
+                return true;
+            });
+
+            renderWeaponRows(sortFamilies(filtered));
+        }
+
         function loadWeapons() {
             fetch('/weapons')
                 .then(response => response.json())
-                .then(weapons => {
-                    // Store weapons globally
-                    allWeapons = weapons;
-                    
-                    // Update filters
-                    populateFilters(weapons);
-                    
-                    // Display all weapons
-                    const container = document.getElementById('weapons-container');
-                    container.innerHTML = '';
-                    
-                    weapons.forEach(weapon => {
-                        const row = document.createElement('tr');
-                        row.style.cursor = 'pointer';
-                        row.onclick = () => showWeaponDetails(weapon.hash);
-                        
-                        row.innerHTML = `
-                            <td class="weapon-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <img src="${weapon.icon_url}" class="weapon-icon" alt="${weapon.name}" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
-                                    <span>${weapon.name}</span>
-                                </div>
-                            </td>
-                            <td class="weapon-type-cell">${weapon.type || ''}</td>
-                            <td class="damage-type-cell">
-                                <span class="damage-type ${weapon.damage_type}">${weapon.damage_type || ''}</span>
-                            </td>
-                            <td class="season-cell">
-                                <span class="season-badge">${weapon.season ? `Season ${weapon.season}` : 'Unknown'}</span>
-                            </td>
-                        `;
-                        
-                        container.appendChild(row);
-                    });
+                .then(families => {
+                    allFamilies = families;
+                    populateFilters(families);
+                    filterWeapons();
                 });
         }
 
-        function loadDuplicates() {
-            const container = document.getElementById('duplicates-container');
-            container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+        function openSidebar() {
+            document.body.classList.add('sidebar-open');
+            document.getElementById('weaponSidebar').setAttribute('aria-hidden', 'false');
+        }
 
-            fetch('/duplicates')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+        function closeSidebar() {
+            document.body.classList.remove('sidebar-open');
+            document.getElementById('weaponSidebar').setAttribute('aria-hidden', 'true');
+            selectedFamilyName = null;
+            document.querySelectorAll('#weapons-container tr.selected-row').forEach(row => {
+                row.classList.remove('selected-row');
+            });
+        }
+
+        document.getElementById('sidebarCloseBtn').addEventListener('click', closeSidebar);
+        document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
+
+        function countVersionPerks(version) {
+            return (version.perk_columns || []).reduce((sum, col) => sum + col.perks.length, 0);
+        }
+
+        function getPerkNames(version) {
+            const names = new Set();
+            (version.perk_columns || []).forEach(column => {
+                column.perks.forEach(perk => names.add(perk.name));
+            });
+            return names;
+        }
+
+        function getPerkColumnsForView(version, family, viewMode) {
+            if (!family || viewMode === 'this') {
+                return version.perk_columns || [];
+            }
+            if (viewMode === 'unique') {
+                const otherPerks = new Set();
+                family.versions.forEach(v => {
+                    if (String(v.hash) !== String(version.hash)) {
+                        getPerkNames(v).forEach(name => otherPerks.add(name));
                     }
+                });
+                return (version.perk_columns || []).map(column => ({
+                    ...column,
+                    perks: column.perks.filter(perk => !otherPerks.has(perk.name)),
+                })).filter(column => column.perks.length > 0);
+            }
+            return version.perk_columns || [];
+        }
+
+        function renderStatsHtml(stats) {
+            const statEntries = Object.entries(stats || {});
+            statEntries.sort((a, b) => {
+                const ai = STAT_DISPLAY_ORDER.indexOf(a[0]);
+                const bi = STAT_DISPLAY_ORDER.indexOf(b[0]);
+                if (ai === -1 && bi === -1) return a[0].localeCompare(b[0]);
+                if (ai === -1) return 1;
+                if (bi === -1) return -1;
+                return ai - bi;
+            });
+            if (!statEntries.length) {
+                return '<p class="text-muted small mb-0">No stats available.</p>';
+            }
+            return `
+                <div class="sidebar-stats">
+                    ${statEntries.map(([name, value]) => `
+                        <div class="stat-row">
+                            <span>${escapeHtml(name)}</span>
+                            <span class="text-muted">${escapeHtml(value)}</span>
+                        </div>
+                        <div class="progress mb-1" style="height: 4px;">
+                            <div class="progress-bar bg-info" style="width: ${value}%"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderPerkColumnsHtml(perkColumns) {
+            const columns = (perkColumns || []).filter(col => col.perks.length);
+            if (!columns.length) {
+                return '<p class="text-muted small mb-0">No perks for this view.</p>';
+            }
+            const gridCols = columns.length;
+            return `
+                <div class="perk-columns-row" style="grid-template-columns: repeat(${gridCols}, minmax(0, 1fr));">
+                    ${columns.map(column => `
+                        <div class="perk-column">
+                            <h6>${escapeHtml(column.label)}</h6>
+                            <div class="perk-list">
+                                ${column.perks.map(perk => `
+                                    <div class="perk-tooltip">
+                                        <img src="${escapeHtml(perk.icon_url)}" class="perk-icon" alt="${escapeHtml(perk.name)}" title="${escapeHtml(perk.name)}" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                                        <div class="tooltip-text">
+                                            <div class="perk-name">${escapeHtml(perk.name)}</div>
+                                            <div>${escapeHtml(perk.description)}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderVersionBody(version, family, perkViewMode) {
+            const columns = getPerkColumnsForView(version, family, perkViewMode);
+            return `
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="weapon-icon-wrap weapon-icon-wrap--lg">
+                        <img src="${escapeHtml(version.icon_url)}" class="weapon-icon" style="border-radius: 6px;" alt="${escapeHtml(version.display_name)}">
+                        ${renderWatermarkOverlay(version.watermark_url, version.watermark_shadow_url)}
+                    </div>
+                    <div>
+                        <div>${escapeHtml(version.type)} · ${escapeHtml(formatFrameLabel(version.archetype))} · ${escapeHtml(version.ammo_type)}</div>
+                        <div><span class="damage-type ${escapeHtml(version.damage_type)}">${escapeHtml(version.damage_type)}</span></div>
+                        <div class="sidebar-uniqueness">${renderUniquenessScores(version)}</div>
+                        ${version.description ? `<div class="small text-muted mt-1">${escapeHtml(version.description)}</div>` : ''}
+                        ${version.flavor_text ? `<div class="small fst-italic text-muted mt-1">${escapeHtml(version.flavor_text)}</div>` : ''}
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-3 mb-2">
+                    <h6 class="mb-0">Perks</h6>
+                    <div class="perk-view-buttons btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary ${perkViewMode === 'this' ? 'active' : ''}" data-view="this">All perks</button>
+                        <button type="button" class="btn btn-outline-secondary ${perkViewMode === 'unique' ? 'active' : ''}" data-view="unique">Unique only</button>
+                    </div>
+                </div>
+                ${renderPerkColumnsHtml(columns)}
+                <h6 class="border-bottom border-secondary pb-2 mb-2 mt-3">Stats</h6>
+                ${renderStatsHtml(version.stats)}
+            `;
+        }
+
+        function refreshVersionBody(item, version, family) {
+            const perkViewMode = item.dataset.perkView || 'this';
+            item.querySelector('.version-accordion-body').innerHTML = renderVersionBody(version, family, perkViewMode);
+            item.querySelectorAll('.perk-view-buttons button').forEach(button => {
+                button.onclick = (event) => {
+                    event.stopPropagation();
+                    item.dataset.perkView = button.dataset.view;
+                    refreshVersionBody(item, version, family);
+                };
+            });
+        }
+
+        function renderVersionAccordion(family) {
+            const accordion = document.getElementById('versionAccordion');
+            accordion.innerHTML = '';
+
+            family.versions.forEach((version, index) => {
+                const item = document.createElement('div');
+                item.className = 'version-accordion-item';
+                item.dataset.hash = version.hash;
+                item.dataset.perkView = 'this';
+
+                const perkCount = countVersionPerks(version);
+                const openByDefault = family.version_count === 1 || index === 0;
+
+                item.innerHTML = `
+                    <button type="button" class="version-accordion-header" aria-expanded="${openByDefault}">
+                        <span class="version-chevron">▶</span>
+                        <span class="version-header-text">
+                            <div class="version-header-title">${escapeHtml(version.version_label)}</div>
+                            <div class="version-header-subtitle">${escapeHtml(version.display_name)} · ${escapeHtml(version.damage_type || 'Unknown')} · ${perkCount} perks</div>
+                        </span>
+                        <span class="badge bg-secondary">${openByDefault ? 'Expanded' : 'Tap to expand'}</span>
+                    </button>
+                    <div class="version-accordion-body"></div>
+                `;
+
+                if (openByDefault) {
+                    item.classList.add('open');
+                }
+
+                const header = item.querySelector('.version-accordion-header');
+                header.addEventListener('click', () => {
+                    const isOpen = item.classList.contains('open');
+                    accordion.querySelectorAll('.version-accordion-item.open').forEach(openItem => {
+                        openItem.classList.remove('open');
+                        openItem.querySelector('.version-accordion-header').setAttribute('aria-expanded', 'false');
+                        openItem.querySelector('.badge').textContent = 'Tap to expand';
+                    });
+                    if (!isOpen) {
+                        item.classList.add('open');
+                        header.setAttribute('aria-expanded', 'true');
+                        item.querySelector('.badge').textContent = 'Expanded';
+                    }
+                });
+
+                refreshVersionBody(item, version, family);
+                accordion.appendChild(item);
+            });
+        }
+
+        // Sidebar version selector (dropdown) + card renderer
+        let sidebarPerkViewMode = 'this';
+
+        function renderSidebarVersionCard(family, version) {
+            sidebarPerkViewMode = sidebarPerkViewMode || 'this';
+            const card = document.getElementById('sidebarVersionCard');
+            card.innerHTML = renderVersionBody(version, family, sidebarPerkViewMode);
+
+            card.querySelectorAll('.perk-view-buttons button').forEach(btn => {
+                btn.onclick = (event) => {
+                    event.stopPropagation();
+                    sidebarPerkViewMode = btn.dataset.view || 'this';
+                    renderSidebarVersionCard(family, version);
+                };
+            });
+        }
+
+        function renderSidebarVersionSelectAndCard(family) {
+            const select = document.getElementById('sidebarVersionSelect');
+            const card = document.getElementById('sidebarVersionCard');
+            select.innerHTML = '';
+            card.innerHTML = '';
+
+            if (!family || !family.versions || !family.versions.length) return;
+
+            // newest-first comes from backend; default to first entry
+            family.versions.forEach(v => {
+                const option = document.createElement('option');
+                option.value = v.hash;
+                option.textContent = `${v.version_label} — ${v.display_name}`;
+                select.appendChild(option);
+            });
+
+            const preferred = family.versions[0];
+            select.value = preferred.hash;
+            select.disabled = family.versions.length === 1;
+
+            sidebarPerkViewMode = 'this';
+            renderSidebarVersionCard(family, preferred);
+
+            select.onchange = () => {
+                const selected = family.versions.find(v => String(v.hash) === String(select.value));
+                if (!selected) return;
+                sidebarPerkViewMode = 'this';
+                renderSidebarVersionCard(family, selected);
+            };
+        }
+
+        function openWeaponFamily(familyName) {
+            selectedFamilyName = familyName;
+            document.querySelectorAll('#weapons-container tr').forEach(row => {
+                row.classList.toggle('selected-row', row.dataset.familyName === familyName);
+            });
+
+            fetch(`/weapon-family/${encodeURIComponent(familyName)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Weapon family not found');
                     return response.json();
                 })
-                .then(duplicates => {
-                    container.innerHTML = '';
-                    
-                    if (duplicates.length === 0) {
-                        container.innerHTML = '<div class="text-center text-muted">No duplicate weapons found</div>';
-                        return;
-                    }
-
-                    duplicates.forEach(dup => {
-                        const duplicateGroup = document.createElement('div');
-                        duplicateGroup.className = 'duplicate-group';
-                        
-                        // Create header with weapon name and count
-                        const header = document.createElement('div');
-                        header.className = 'duplicate-header';
-                        header.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">${dup.name}</h5>
-                                <span class="badge bg-primary">${dup.count} versions</span>
-                            </div>
-                        `;
-                        duplicateGroup.appendChild(header);
-
-                        // Create container for weapon rows
-                        const weaponsContainer = document.createElement('div');
-                        weaponsContainer.className = 'duplicate-weapons';
-
-                        // Sort weapons by season (newest first)
-                        dup.weapons.sort((a, b) => (b.season || 0) - (a.season || 0));
-                        
-                        dup.weapons.forEach(weapon => {
-                            const weaponRow = document.createElement('div');
-                            weaponRow.className = 'weapon-row';
-                            weaponRow.innerHTML = `
-                                <div class="weapon-info">
-                                    <div class="weapon-type">${weapon.type || 'Unknown Type'}</div>
-                                    <div class="damage-type">
-                                        <span class="damage-type ${weapon.damage_type || ''}">${weapon.damage_type || 'Unknown'}</span>
-                                    </div>
-                                    <div class="season-badge">${weapon.season ? `Season ${weapon.season}` : 'Unknown'}</div>
-                                </div>
-                                <div class="weapon-actions">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="showWeaponDetails('${weapon.hash}')">
-                                        View Details
-                                    </button>
-                                </div>
-                            `;
-                            weaponsContainer.appendChild(weaponRow);
-                        });
-
-                        duplicateGroup.appendChild(weaponsContainer);
-                        container.appendChild(duplicateGroup);
-                    });
+                .then(family => {
+                    currentWeaponFamily = family;
+                    document.getElementById('sidebarTitle').textContent = family.family_name;
+                    document.getElementById('sidebarSubtitle').textContent = family.version_count > 1
+                        ? `${family.version_count} releases · ${family.versions.map(v => v.variant).filter((v, i, a) => a.indexOf(v) === i).join(', ')}`
+                        : family.versions[0].display_name;
+                    renderSidebarVersionSelectAndCard(family);
+                    openSidebar();
                 })
                 .catch(error => {
-                    console.error('Error loading duplicates:', error);
-                    container.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            Error loading duplicate weapons. Please try again later.
-                        </div>
-                    `;
+                    console.error('Error loading weapon family:', error);
+                    alert('Could not load weapon versions.');
                 });
         }
 
@@ -695,7 +1241,7 @@
                         const watermarkCell = document.createElement('td');
                         watermarkCell.innerHTML = `
                             <div class="watermark-image">
-                                <img src="https://www.bungie.net${watermark.watermark_path}" alt="Watermark">
+                                <img src="https://www.bungie.net${escapeHtml(watermark.watermark_path)}" alt="Watermark">
                             </div>
                         `;
                         
@@ -703,8 +1249,8 @@
                         const itemCell = document.createElement('td');
                         itemCell.innerHTML = `
                             <div class="item-info">
-                                <img src="https://www.bungie.net${watermark.item_icon}" class="item-icon" alt="${watermark.item_name}">
-                                <span>${watermark.item_name || 'Unknown'}</span>
+                                <img src="https://www.bungie.net${escapeHtml(watermark.item_icon)}" class="item-icon" alt="${escapeHtml(watermark.item_name)}">
+                                <span>${escapeHtml(watermark.item_name || 'Unknown')}</span>
                             </div>
                         `;
                         
@@ -719,9 +1265,9 @@
                         // Season/Activity column
                         const seasonCell = document.createElement('td');
                         if (watermark.type === 'Season') {
-                            seasonCell.innerHTML = `<span class="season-badge">Season ${watermark.season_number}</span>`;
+                            seasonCell.innerHTML = `<span class="season-badge">Season ${escapeHtml(watermark.season_number)}</span>`;
                         } else if (watermark.type === 'Activity') {
-                            seasonCell.innerHTML = `<span class="activity-badge">${watermark.description}</span>`;
+                            seasonCell.innerHTML = `<span class="activity-badge">${escapeHtml(watermark.description)}</span>`;
                         } else {
                             seasonCell.textContent = 'Unknown';
                         }
@@ -733,8 +1279,8 @@
                         if (description.length > 100) {
                             descriptionCell.innerHTML = `
                                 <div class="perk-tooltip">
-                                    ${description.substring(0, 100)}...
-                                    <div class="tooltip-text">${description}</div>
+                                    ${escapeHtml(description.substring(0, 100))}...
+                                    <div class="tooltip-text">${escapeHtml(description)}</div>
                                 </div>
                             `;
                         } else {
@@ -763,85 +1309,12 @@
                 });
         }
 
-        // Initial load
+        initSortableHeaders();
         loadWeapons();
-        loadDuplicates();
         loadWatermarks();
 
-        // Add filter event listeners
         document.getElementById('weaponTypeFilter').addEventListener('change', filterWeapons);
         document.getElementById('damageTypeFilter').addEventListener('change', filterWeapons);
-
-        function showWeaponDetails(weaponHash) {
-            fetch(`/weapon/${weaponHash}`)
-                .then(response => response.json())
-                .then(weapon => {
-                    // Update modal content
-                    document.getElementById('modalWeaponName').textContent = weapon.name;
-                    document.getElementById('modalWeaponIcon').src = weapon.icon_url;
-                    document.getElementById('modalWeaponType').textContent = weapon.type;
-                    document.getElementById('modalDamageType').innerHTML = `
-                        <span class="damage-type ${weapon.damage_type}">${weapon.damage_type}</span>
-                    `;
-                    document.getElementById('modalAmmoType').textContent = weapon.ammo_type;
-                    document.getElementById('modalSeason').textContent = weapon.season ? `Season ${weapon.season}` : 'No Season';
-                    document.getElementById('modalDescription').textContent = weapon.description;
-                    document.getElementById('modalFlavorText').textContent = weapon.flavor_text;
-
-                    // Update stats
-                    const statsContainer = document.getElementById('modalStats');
-                    statsContainer.innerHTML = '';
-                    for (const [statName, value] of Object.entries(weapon.stats)) {
-                        const displayName = STAT_NAMES[statName.replace('Stat_', '')] || statName;
-                        const statDiv = document.createElement('div');
-                        statDiv.className = 'col-md-6 mb-2';
-                        statDiv.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>${displayName}</span>
-                                <span class="text-muted">${value}</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-info" style="width: ${value}%"></div>
-                            </div>
-                        `;
-                        statsContainer.appendChild(statDiv);
-                    }
-
-                    // Update perks
-                    const perksContainer = document.getElementById('modalPerks');
-                    perksContainer.innerHTML = '';
-                    
-                    // Only show columns that are in our COLUMN_NAMES mapping
-                    COLUMN_ORDER.forEach(column => {
-                        if (!weapon.perks[column]) return;
-                        
-                        const columnName = COLUMN_NAMES[column];
-                        if (!columnName) return;
-                        
-                        const columnDiv = document.createElement('div');
-                        columnDiv.className = 'mb-4';
-                        columnDiv.innerHTML = `
-                            <h6 class="mb-2">${columnName}</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                ${weapon.perks[column].map(perk => `
-                                    <div class="perk-tooltip">
-                                        <img src="${perk.icon_url}" class="perk-icon" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
-                                        <div class="tooltip-text">
-                                            <div class="perk-name">${perk.name}</div>
-                                            <div>${perk.description}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                        perksContainer.appendChild(columnDiv);
-                    });
-
-                    // Show modal
-                    const modal = new bootstrap.Modal(document.getElementById('weaponModal'));
-                    modal.show();
-                });
-        }
 
         function getItemTypeName(type) {
             const itemTypes = {

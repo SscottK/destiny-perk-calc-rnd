@@ -11,7 +11,85 @@ Last modified: Simplified to only include essential weapon data
 import sqlite3
 import json
 import time
-from collections import defaultdict
+
+from config import get_manifest_db_path, manifest_db_exists, resolve_watermark_season
+
+MANIFEST_DB_PATH = get_manifest_db_path()
+
+def row_value(row, key, default=None):
+    """Read a sqlite3.Row column (never use `'key' in row` — that always fails)."""
+    try:
+        value = row[key]
+    except (KeyError, IndexError):
+        return default
+    return default if value is None else value
+
+# DestinySocketCategoryDefinition hash for rollable perk columns
+WEAPON_PERKS_SOCKET_CATEGORY = 4241085061
+
+def is_rollable_plug_name(name):
+    """Exclude cosmetics, stat tiers, and mod-socket items when using raw reusable plugs."""
+    if not name:
+        return False
+    lower = name.lower()
+    if any(x in lower for x in ('keepsake', 'shader', 'ornament')):
+        return False
+    if name.startswith('Tier '):
+        return False
+    if 'adept' in lower and ('mod' in lower or 'enhancement' in lower or 'targeting' in lower):
+        return False
+    if 'finder enhancement' in lower or 'surge' in lower and 'resonance' in lower:
+        return False
+    return True
+
+def get_weapon_perk_socket_indexes(socket_categories_json, socket_entries_json):
+    """Socket indexes for WEAPON PERKS, in left-to-right display order."""
+    if socket_categories_json:
+        for category in json.loads(socket_categories_json):
+            if convert_hash(category.get('socketCategoryHash')) == WEAPON_PERKS_SOCKET_CATEGORY:
+                return category.get('socketIndexes', [])
+    if not socket_entries_json:
+        return []
+    entries = json.loads(socket_entries_json)
+    fallback = []
+    for index, socket_entry in enumerate(entries):
+        if not socket_entry:
+            continue
+        if socket_entry.get('randomizedPlugSetHash') or socket_entry.get('reusablePlugSetHash'):
+            fallback.append(index)
+    return fallback
+
+def get_plug_hashes_from_plug_set(manifest_db, plug_set_hash):
+    plug_set_hash = convert_hash(plug_set_hash)
+    row = manifest_db.execute(
+        """
+        SELECT json_extract(json, '$.reusablePlugItems') as reusablePlugItems
+        FROM DestinyPlugSetDefinition
+        WHERE json_extract(json, '$.hash') = ?
+        """,
+        (plug_set_hash,),
+    ).fetchone()
+    if not row or not row['reusablePlugItems']:
+        return []
+    plug_hashes = []
+    for plug_item in json.loads(row['reusablePlugItems']):
+        plug_hash = convert_hash(plug_item.get('plugItemHash'))
+        if plug_hash:
+            plug_hashes.append(plug_hash)
+    return plug_hashes
+
+def get_rollable_plug_hashes_for_socket(socket_entry, manifest_db):
+    """Plugs that can roll in this socket (plug set pools, not mod/cosmetic sockets)."""
+    if socket_entry.get('randomizedPlugSetHash'):
+        return get_plug_hashes_from_plug_set(manifest_db, socket_entry['randomizedPlugSetHash'])
+    if socket_entry.get('reusablePlugSetHash'):
+        return get_plug_hashes_from_plug_set(manifest_db, socket_entry['reusablePlugSetHash'])
+    plug_hashes = []
+    for plug in socket_entry.get('reusablePlugItems', []):
+        plug_hash = convert_hash(plug.get('plugItemHash'))
+        if plug_hash:
+            plug_hashes.append(plug_hash)
+    return plug_hashes
 
 def convert_hash(hash_value):
     """Convert hash to signed 32-bit integer if needed"""
@@ -19,84 +97,21 @@ def convert_hash(hash_value):
         return int(hash_value) & 0xFFFFFFFF
     return hash_value
 
-def get_season_number(season_hash):
-    """Convert season hash to season number"""
-    if not season_hash:
-        print(f"Warning: Empty season hash provided")
-        return None
-        
-    try:
-        print(f"\nAttempting to determine season for hash: {season_hash}")
-        manifest_db = sqlite3.connect("world_sql_content_4bc957fe614b9ca05b3a93fc27458ae4 - Copy.sqlite3")
-        manifest_db.row_factory = sqlite3.Row
-        
-        # First try to get season from DestinySeasonDefinition
-        season_query = """
-        SELECT json_extract(json, '$.seasonNumber') as seasonNumber,
-               json_extract(json, '$.displayProperties.name') as seasonName
-        FROM DestinySeasonDefinition
-        WHERE json_extract(json, '$.hash') = ?
-        """
-        
-        result = manifest_db.execute(season_query, (season_hash,)).fetchone()
-        if result and result['seasonNumber']:
-            print(f"Found season in DestinySeasonDefinition: {result['seasonName']} (Season {result['seasonNumber']})")
-            manifest_db.close()
-            return int(result['seasonNumber'])
-            
-        print(f"Season not found in DestinySeasonDefinition, checking season mapping...")
-            
-        # If not found, try to get it from the season hash mapping
-        season_mapping = {
-            "31445f1891ce9eb464ed1dcf28f43613": 1,  # Red War
-            "b12630659223b53634e9f97c0a0a8305": 2,  # Curse of Osiris
-            "2c024f088557ca6cceae1e8030c67169": 3,  # Warmind
-            "e775dcb3d47e3d54e0e24fbdb64b5763": 4,  # Forsaken
-            "0337ec21962f67c7c493fedb447c4a9b": 5,  # Black Armory
-            "1b6c8b94cec61ea42edb1e2cb6b45a31": 6,  # Season of the Drifter
-            "2352f9d04dc842cfcdda77636335ded9": 7,  # Season of Opulence
-            "fb50cd68a9850bd323872be4f6be115c": 8,  # Shadowkeep
-            "ed6c4762c48bd132d538ced83c1699a6": 9,  # Season of Dawn
-            "23968435c2095c0f8119d82ee222c672": 10, # Season of the Worthy
-            "a3923ae7d2376a1c4eb0f1f154da7565": 11, # Season of Arrivals
-            "448f071a7637fcefb2fccf76902dcf7d": 12, # Beyond Light
-            "af00bdcd3e3b89e6e85c1f63ebc0b4e4": 13, # Season of the Hunt
-            "a2fb48090c8bc0e5785975fab9596ab5": 14, # Season of the Chosen
-            "ab075a3679d69f40b8c2a319635d60a9": 15, # Season of the Splicer
-            "1448dde4efdb57b07f5473f87c4fccd7": 16, # Season of the Lost
-            "5586f6a4193e34acc035209b5e9204d8": 17, # The Witch Queen
-            "3543d23d9063fbf7332c7f129a74ada2": 18, # Season of the Risen
-            "be3c0a95a8d1abc6e7c875d4294ba233": 19, # Season of the Haunted
-            "4c25426263cacf963777cd4988340838": 20, # Season of Plunder
-            "428c962c15612ea89693349d1b84531a": 21, # Season of the Seraph
-            "d5a3f4d7d20fefc781fea3c60bde9434": 22, # Lightfall
-            "b973f89ecd631a3e3d294e98268f7134": 23, # Season of Defiance
-            "f80e39c767f309f0b2be625dae0e3744": 24, # Season of the Deep
-            "3de52d90db7ee2feb086ef6665b736b6": 25, # Season of the Witch
-            "e8fe681196baf74917fa3e6f125349b0": 26, # Season of the Wish
-            "52523b49e5965f6f33ab86710215c676": 27  # Latest
-        }
-        
-        season_number = season_mapping.get(season_hash)
-        if season_number:
-            print(f"Found season in mapping: Season {season_number}")
-        else:
-            print(f"Warning: Season hash {season_hash} not found in mapping")
-            
-        manifest_db.close()
-        return season_number
-    except Exception as e:
-        print(f"Error getting season number for hash {season_hash}: {str(e)}")
-        return None
-
 def migrate_data():
     print("Starting migration...")
     start_time = time.time()
     
     try:
+        if not manifest_db_exists():
+            raise FileNotFoundError(
+                f"Manifest database not found at: {MANIFEST_DB_PATH}\n"
+                "Set DESTINY_MANIFEST_DB to the path of your Bungie world content .sqlite3 file."
+            )
+
         # Connect to databases
         print("Connecting to databases...")
-        manifest_db = sqlite3.connect("world_sql_content_4bc957fe614b9ca05b3a93fc27458ae4 - Copy.sqlite3")
+        print(f"Using manifest: {MANIFEST_DB_PATH}")
+        manifest_db = sqlite3.connect(MANIFEST_DB_PATH)
         manifest_db.row_factory = sqlite3.Row
         print("Connected to manifest database")
         weapon_db = sqlite3.connect("weapon_perks.db")
@@ -158,16 +173,33 @@ def migrate_data():
             weapon_hash INTEGER NOT NULL,
             perk_hash INTEGER NOT NULL,
             column_name TEXT NOT NULL,
+            socket_order INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (weapon_hash) REFERENCES weapons(hash),
             FOREIGN KEY (perk_hash) REFERENCES perks(hash)
         )
         """)
+        try:
+            weapon_db.execute(
+                "ALTER TABLE weapon_perks ADD COLUMN socket_order INTEGER NOT NULL DEFAULT 0"
+            )
+        except sqlite3.OperationalError:
+            pass
         
         # Create indexes
         weapon_db.execute("CREATE INDEX IF NOT EXISTS idx_weapon_type ON weapons(type)")
         weapon_db.execute("CREATE INDEX IF NOT EXISTS idx_perk_type ON perks(name)")
         weapon_db.execute("CREATE INDEX IF NOT EXISTS idx_weapon_perks ON weapon_perks(weapon_hash, perk_hash)")
+        weapon_db.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_weapon_perk_column
+            ON weapon_perks(weapon_hash, perk_hash, column_name)
+        """)
+
+        print("Clearing perks and stats tables for fresh migration...")
+        weapon_db.execute("DELETE FROM weapon_perks")
+        weapon_db.execute("DELETE FROM perks")
+        weapon_db.execute("DELETE FROM weapon_stats")
+        weapon_db.commit()
         
         # Pre-load all perks into memory
         print("Pre-loading perks into memory...")
@@ -179,7 +211,6 @@ def migrate_data():
                json_extract(json, '$.displayProperties.icon') as icon
         FROM DestinyInventoryItemDefinition
         WHERE json_extract(json, '$.displayProperties.name') IS NOT NULL
-        AND json_extract(json, '$.displayProperties.description') IS NOT NULL
         AND (
             json_extract(json, '$.itemType') = 19  -- Perk type
             OR json_extract(json, '$.itemType') = 20  -- Mod type
@@ -192,11 +223,11 @@ def migrate_data():
         for row in manifest_db.execute(perk_query):
             try:
                 hash_val = convert_hash(row['hash'])
-                if hash_val and row['name'] and row['description']:
+                if hash_val and row['name']:
                     perk_cache[hash_val] = {
                         'name': row['name'],
-                        'description': row['description'],
-                        'icon': row['icon'] if row['icon'] else ''
+                        'description': row['description'] or '',
+                        'icon': row['icon'] or ''
                     }
             except Exception as e:
                 print(f"Error processing perk: {str(e)}")
@@ -236,7 +267,9 @@ def migrate_data():
                    json_extract(json, '$.flavorText') as flavorText,
                    json_extract(json, '$.inventory.tierType') as tierType,
                    json_extract(json, '$.sockets.socketEntries') as socketEntries,
-                   json_extract(json, '$.iconWatermark') as iconWatermark
+                   json_extract(json, '$.sockets.socketCategories') as socketCategories,
+                   json_extract(json, '$.iconWatermark') as iconWatermark,
+                   json_extract(json, '$.stats.stats') as weaponStats
             FROM DestinyInventoryItemDefinition
             WHERE json_extract(json, '$.itemType') = 3
             AND json_extract(json, '$.inventory.tierType') = 5  -- Legendary tier
@@ -257,119 +290,116 @@ def migrate_data():
                 weapon_inserts = []
                 perk_inserts = []
                 weapon_perk_inserts = []
+                weapon_stat_inserts = []
                 
                 # Process batch
                 for weapon in weapons:
                     try:
-                        weapon_hash = convert_hash(weapon['hash'])
-                        weapon_type = weapon['itemType'] or "Unknown"
-                        
-                        # Get season number from icon watermark
-                        icon_watermark = weapon['iconWatermark']
-                        season_number = 0
-                        if icon_watermark:
-                            # Extract the hash from the icon watermark path
-                            watermark_hash = icon_watermark.split('/')[-1].split('.')[0]
-                            print(f"\nProcessing weapon: {weapon['name']}")
-                            print(f"Watermark path: {icon_watermark}")
-                            print(f"Extracted hash: {watermark_hash}")
-                            season_number = get_season_number(watermark_hash) or 0
-                            if not season_number:
-                                print(f"Warning: Could not determine season for weapon {weapon['name']} with watermark {watermark_hash}")
-                            else:
-                                print(f"Successfully determined season {season_number} for {weapon['name']}")
+                        weapon_hash = convert_hash(row_value(weapon, 'hash'))
+                        weapon_type = row_value(weapon, 'itemType') or "Unknown"
+                        season_number = resolve_watermark_season(
+                            row_value(weapon, 'iconWatermark'),
+                            manifest_db,
+                        )
                         
                         # Add weapon to bulk insert
                         weapon_inserts.append((
                             weapon_hash,
-                            weapon['name'],
+                            row_value(weapon, 'name'),
                             weapon_type,
-                            get_damage_type_name(weapon['defaultDamageType']),
-                            weapon['ammoType'] if 'ammoType' in weapon else 'Unknown',
-                            weapon['icon'] if 'icon' in weapon else '',
-                            weapon['description'] if 'description' in weapon else '',
-                            weapon['flavorText'] if 'flavorText' in weapon else '',
-                            "Legendary" if weapon['tierType'] == 5 else "Unknown",
+                            get_damage_type_name(row_value(weapon, 'defaultDamageType')),
+                            get_ammo_type_name(row_value(weapon, 'ammoType')),
+                            row_value(weapon, 'icon', ''),
+                            row_value(weapon, 'description', ''),
+                            row_value(weapon, 'flavorText', ''),
+                            "Legendary" if row_value(weapon, 'tierType') == 5 else "Unknown",
                             season_number,
                             1
                         ))
-                        
-                        # Process perks
-                        if 'socketEntries' in weapon and weapon['socketEntries']:
+
+                        # Process stats
+                        weapon_stats_json = row_value(weapon, 'weaponStats')
+                        if weapon_stats_json:
                             try:
-                                socket_entries = json.loads(weapon['socketEntries'])
-                                for socket_entry in socket_entries:
+                                stats_by_hash = json.loads(weapon_stats_json)
+                                for stat_hash, stat_data in stats_by_hash.items():
+                                    if not stat_data:
+                                        continue
+                                    stat_value = stat_data.get('value')
+                                    if stat_value is None:
+                                        continue
+                                    weapon_stat_inserts.append((
+                                        weapon_hash,
+                                        str(stat_hash),
+                                        int(stat_value),
+                                    ))
+                            except json.JSONDecodeError as e:
+                                print(f"Error parsing stats for {row_value(weapon, 'name')}: {e}")
+                        
+                        # Process rollable perks (WEAPON PERKS sockets only, in column order)
+                        socket_entries_json = row_value(weapon, 'socketEntries')
+                        socket_categories_json = row_value(weapon, 'socketCategories')
+                        if socket_entries_json:
+                            try:
+                                socket_entries = json.loads(socket_entries_json)
+                                perk_socket_indexes = get_weapon_perk_socket_indexes(
+                                    socket_categories_json,
+                                    socket_entries_json,
+                                )
+                                seen_weapon_plugs = set()
+
+                                for socket_order, socket_index in enumerate(perk_socket_indexes):
+                                    if socket_index >= len(socket_entries):
+                                        continue
+                                    socket_entry = socket_entries[socket_index]
                                     if not socket_entry:
                                         continue
-                                        
+
                                     socket_type_hash = socket_entry.get('socketTypeHash')
                                     if not socket_type_hash:
                                         continue
-                                        
-                                    column_name = f"{socket_type_hash}"
-                                    
-                                    # Process reusable plugs
-                                    if 'reusablePlugItems' in socket_entry:
-                                        for plug in socket_entry['reusablePlugItems']:
-                                            plug_hash = convert_hash(plug.get('plugItemHash'))
-                                            if plug_hash and plug_hash in perk_cache:
-                                                perk = perk_cache[plug_hash]
-                                                if perk['name'] and perk['description']:  # Only add valid perks
-                                                    # Add perk to inserts if not already added
-                                                    if not any(p[0] == plug_hash for p in perk_inserts):
-                                                        perk_inserts.append((
-                                                            plug_hash,
-                                                            perk['name'],
-                                                            perk['description'],
-                                                            perk['icon']
-                                                        ))
-                                                    # Add weapon-perk relationship
-                                                    weapon_perk_inserts.append((
-                                                        weapon_hash,
-                                                        plug_hash,
-                                                        column_name
-                                                    ))
-                                    
-                                    # Process random plugs
-                                    if 'randomizedPlugSetHash' in socket_entry:
-                                        plug_set_hash = convert_hash(socket_entry['randomizedPlugSetHash'])
-                                        plug_set_query = """
-                                        SELECT json_extract(json, '$.reusablePlugItems') as reusablePlugItems
-                                        FROM DestinyPlugSetDefinition
-                                        WHERE json_extract(json, '$.hash') = ?
-                                        """
-                                        plug_set = manifest_db.execute(plug_set_query, (plug_set_hash,)).fetchone()
-                                        
-                                        if plug_set and plug_set['reusablePlugItems']:
-                                            try:
-                                                plug_items = json.loads(plug_set['reusablePlugItems'])
-                                                for plug_item in plug_items:
-                                                    plug_hash = convert_hash(plug_item.get('plugItemHash'))
-                                                    if plug_hash and plug_hash in perk_cache:
-                                                        perk = perk_cache[plug_hash]
-                                                        if perk['name'] and perk['description']:  # Only add valid perks
-                                                            # Add perk to inserts if not already added
-                                                            if not any(p[0] == plug_hash for p in perk_inserts):
-                                                                perk_inserts.append((
-                                                                    plug_hash,
-                                                                    perk['name'],
-                                                                    perk['description'],
-                                                                    perk['icon']
-                                                                ))
-                                                            # Add weapon-perk relationship
-                                                            weapon_perk_inserts.append((
-                                                                weapon_hash,
-                                                                plug_hash,
-                                                                column_name
-                                                            ))
-                                            except json.JSONDecodeError:
-                                                print(f"Error parsing plug items for weapon {weapon['name']}")
-                                                continue
+
+                                    column_name = str(socket_type_hash)
+                                    uses_plug_set = bool(
+                                        socket_entry.get('randomizedPlugSetHash')
+                                        or socket_entry.get('reusablePlugSetHash')
+                                    )
+                                    plug_hashes = get_rollable_plug_hashes_for_socket(
+                                        socket_entry, manifest_db
+                                    )
+
+                                    for plug_hash in plug_hashes:
+                                        if plug_hash not in perk_cache:
+                                            continue
+                                        perk = perk_cache[plug_hash]
+                                        if not perk['name']:
+                                            continue
+                                        if not uses_plug_set and not is_rollable_plug_name(perk['name']):
+                                            continue
+
+                                        link_key = (weapon_hash, plug_hash, column_name)
+                                        if link_key in seen_weapon_plugs:
+                                            continue
+                                        seen_weapon_plugs.add(link_key)
+
+                                        if not any(p[0] == plug_hash for p in perk_inserts):
+                                            perk_inserts.append((
+                                                plug_hash,
+                                                perk['name'],
+                                                perk['description'],
+                                                perk['icon'],
+                                            ))
+                                        weapon_perk_inserts.append((
+                                            weapon_hash,
+                                            plug_hash,
+                                            column_name,
+                                            socket_order,
+                                        ))
                             except json.JSONDecodeError as e:
-                                print(f"Error parsing socket entries for {weapon['name']}: {str(e)}")
+                                print(f"Error parsing socket entries for {row_value(weapon, 'name')}: {str(e)}")
                                 continue
                             except Exception as e:
-                                print(f"Error processing perks for {weapon['name']}: {str(e)}")
+                                print(f"Error processing perks for {row_value(weapon, 'name')}: {str(e)}")
                                 continue
                     
                     except Exception as e:
@@ -398,9 +428,17 @@ def migrate_data():
                     print(f"Inserting {len(weapon_perk_inserts)} weapon-perk relationships")
                     weapon_db.executemany("""
                     INSERT OR REPLACE INTO weapon_perks (
-                        weapon_hash, perk_hash, column_name
-                    ) VALUES (?, ?, ?)
+                        weapon_hash, perk_hash, column_name, socket_order
+                    ) VALUES (?, ?, ?, ?)
                     """, weapon_perk_inserts)
+
+                if weapon_stat_inserts:
+                    print(f"Inserting {len(weapon_stat_inserts)} weapon stats")
+                    weapon_db.executemany("""
+                    INSERT OR REPLACE INTO weapon_stats (
+                        weapon_hash, stat_name, stat_value
+                    ) VALUES (?, ?, ?)
+                    """, weapon_stat_inserts)
                 
                 # Commit batch
                 weapon_db.commit()
@@ -440,6 +478,15 @@ def get_damage_type_name(damage_type):
         7: "Strand"
     }
     return damage_types.get(damage_type, "Unknown")
+
+def get_ammo_type_name(ammo_type):
+    """Convert ammo type hash to name"""
+    ammo_types = {
+        1: "Primary",
+        2: "Special",
+        3: "Heavy",
+    }
+    return ammo_types.get(ammo_type, "Unknown")
 
 if __name__ == "__main__":
     migrate_data() 

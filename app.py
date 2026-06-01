@@ -1,190 +1,512 @@
 from flask import Flask, render_template, request, jsonify
-import sqlite3
-import json
 import os
-from datetime import datetime
+import sqlite3
 import re
 
+from config import get_manifest_db_path, manifest_db_exists, stat_display_name
+from uniqueness import attach_frame_fields, attach_uniqueness_fields
+
 app = Flask(__name__)
+
+PERK_COLUMN_LABELS = ['Barrel', 'Magazine', 'Perk 1', 'Perk 2', 'Origin Trait']
+_weapon_season_icon_cache = None
+_weapon_icon_watermark_cache = None
+_icon_watermark_to_badge_cache = None
+_season_badge_by_season_cache = None
+_watermark_shadow_url = None
+
+
+def normalize_item_hash(hash_val):
+    if hash_val is None:
+        return None
+    return int(hash_val) & 0xFFFFFFFF
+
+def normalize_weapon_family(name):
+    """Group variants like 'Fatebringer (Timelost)' under 'Fatebringer'."""
+    return re.sub(r'\s*\([^)]+\)\s*$', '', name).strip()
+
+
+def parse_weapon_variant(name):
+    """Return (family name, variant label e.g. Timelost or Standard)."""
+    match = re.match(r'^(.*?)\s*\(([^)]+)\)\s*$', name)
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+    return name, 'Standard'
+
+
+def parse_weapon_stats(stats_concat):
+    stats = {}
+    if not stats_concat:
+        return stats
+    for stat in stats_concat.split('||'):
+        stat_hash, value = stat.split(':', 1)
+        value = int(value)
+        label = stat_display_name(stat_hash)
+        if label.startswith('Stat ') or (value == 0 and label in ('Attack', 'Power')):
+            continue
+        stats[label] = value
+    return stats
+
+
+def get_watermark_shadow_url():
+    """Full-size watermark stripe used behind the season badge (same as DIM)."""
+    global _watermark_shadow_url
+    if _watermark_shadow_url is not None:
+        return _watermark_shadow_url
+
+    _watermark_shadow_url = ""
+    if not manifest_db_exists():
+        return _watermark_shadow_url
+
+    conn = sqlite3.connect(get_manifest_db_path())
+    row = conn.execute(
+        """
+        SELECT json_extract(json, '$.watermarkDropShadowPath')
+        FROM DestinyInventoryItemConstantsDefinition
+        LIMIT 1
+        """
+    ).fetchone()
+    conn.close()
+    if row and row[0]:
+        _watermark_shadow_url = f"https://www.bungie.net{row[0]}"
+    return _watermark_shadow_url
+
+
+def get_season_badge_by_season_cache():
+    """Map season number -> small season badge path from manifest icon definitions."""
+    global _season_badge_by_season_cache
+    if _season_badge_by_season_cache is not None:
+        return _season_badge_by_season_cache
+
+    _season_badge_by_season_cache = {}
+    if not manifest_db_exists():
+        return _season_badge_by_season_cache
+
+    conn = sqlite3.connect(get_manifest_db_path())
+    rows = conn.execute(
+        """
+        SELECT json_extract(json, '$.secondaryBackground') as badge
+        FROM DestinyIconDefinition
+        WHERE json_extract(json, '$.secondaryBackground') IS NOT NULL
+        AND json_extract(json, '$.secondaryBackground') != ''
+        """
+    ).fetchall()
+    conn.close()
+
+    for (badge,) in rows:
+        match = re.search(r'season(\d+)', badge, re.IGNORECASE)
+        if match:
+            _season_badge_by_season_cache[int(match.group(1))] = badge
+
+    return _season_badge_by_season_cache
+
+
+def get_weapon_icon_watermark_cache():
+    """Load weapon hash -> iconWatermark path from manifest."""
+    global _weapon_icon_watermark_cache
+    if _weapon_icon_watermark_cache is not None:
+        return _weapon_icon_watermark_cache
+
+    _weapon_icon_watermark_cache = {}
+    if not manifest_db_exists():
+        return _weapon_icon_watermark_cache
+
+    conn = sqlite3.connect(get_manifest_db_path())
+    rows = conn.execute(
+        """
+        SELECT json_extract(json, '$.hash') as hash,
+               json_extract(json, '$.iconWatermark') as icon_watermark
+        FROM DestinyInventoryItemDefinition
+        WHERE json_extract(json, '$.itemType') = 3
+        AND json_extract(json, '$.inventory.tierType') = 5
+        """
+    ).fetchall()
+    conn.close()
+
+    for hash_val, icon_watermark in rows:
+        if hash_val is None or not icon_watermark:
+            continue
+        _weapon_icon_watermark_cache[normalize_item_hash(hash_val)] = icon_watermark
+
+    return _weapon_icon_watermark_cache
+
+
+def get_icon_watermark_to_badge_cache():
+    """Map full iconWatermark sprite -> small season badge via items that define both."""
+    global _icon_watermark_to_badge_cache
+    if _icon_watermark_to_badge_cache is not None:
+        return _icon_watermark_to_badge_cache
+
+    _icon_watermark_to_badge_cache = {}
+    if not manifest_db_exists():
+        return _icon_watermark_to_badge_cache
+
+    conn = sqlite3.connect(get_manifest_db_path())
+    rows = conn.execute(
+        """
+        SELECT json_extract(w.json, '$.iconWatermark') as icon_watermark,
+               json_extract(icon.json, '$.secondaryBackground') as season_icon
+        FROM DestinyInventoryItemDefinition w
+        JOIN DestinyIconDefinition icon
+            ON icon.id = json_extract(w.json, '$.displayProperties.iconHash')
+        WHERE json_extract(w.json, '$.iconWatermark') IS NOT NULL
+        AND json_extract(icon.json, '$.secondaryBackground') IS NOT NULL
+        AND json_extract(icon.json, '$.secondaryBackground') != ''
+        """
+    ).fetchall()
+    conn.close()
+
+    for icon_watermark, season_icon in rows:
+        if icon_watermark and season_icon:
+            _icon_watermark_to_badge_cache[icon_watermark] = season_icon
+
+    return _icon_watermark_to_badge_cache
+
+
+def get_weapon_season_icon_cache():
+    """Load weapon hash -> season badge path from IconDefinition.secondaryBackground."""
+    global _weapon_season_icon_cache
+    if _weapon_season_icon_cache is not None:
+        return _weapon_season_icon_cache
+
+    _weapon_season_icon_cache = {}
+    if not manifest_db_exists():
+        return _weapon_season_icon_cache
+
+    conn = sqlite3.connect(get_manifest_db_path())
+    rows = conn.execute(
+        """
+        SELECT json_extract(w.json, '$.hash') as hash,
+               json_extract(icon.json, '$.secondaryBackground') as season_icon
+        FROM DestinyInventoryItemDefinition w
+        LEFT JOIN DestinyIconDefinition icon
+            ON icon.id = json_extract(w.json, '$.displayProperties.iconHash')
+        WHERE json_extract(w.json, '$.itemType') = 3
+        AND json_extract(w.json, '$.inventory.tierType') = 5
+        """
+    ).fetchall()
+    conn.close()
+
+    for hash_val, season_icon in rows:
+        if hash_val is None or not season_icon:
+            continue
+        _weapon_season_icon_cache[normalize_item_hash(hash_val)] = season_icon
+
+    return _weapon_season_icon_cache
+
+
+def resolve_weapon_season_icon(weapon_hash, season=None):
+    """
+    Resolve the small season badge icon for a weapon hash.
+    Matches DIM's secondaryBackground when available, with fallbacks for newer items
+    whose icon definitions are missing from the manifest.
+    """
+    item_hash = normalize_item_hash(weapon_hash)
+    if item_hash is None:
+        return None
+
+    direct = get_weapon_season_icon_cache().get(item_hash)
+    if direct:
+        return direct
+
+    season_num = int(season or 0)
+    if season_num > 0:
+        badge = get_season_badge_by_season_cache().get(season_num)
+        if badge:
+            return badge
+
+    icon_watermark = get_weapon_icon_watermark_cache().get(item_hash)
+    if icon_watermark:
+        badge = get_icon_watermark_to_badge_cache().get(icon_watermark)
+        if badge:
+            return badge
+
+    return None
+
+
+def build_watermark_fields(weapon_hash, season=None):
+    season_icon_path = resolve_weapon_season_icon(weapon_hash, season)
+    if not season_icon_path:
+        return "", ""
+    return (
+        f"https://www.bungie.net{season_icon_path}",
+        get_watermark_shadow_url(),
+    )
+
+
+def attach_weapon_fields(payload, weapon_hash):
+    attach_frame_fields(payload, weapon_hash)
+    attach_uniqueness_fields(payload, weapon_hash)
+    return payload
+
+
+def build_weapon_version(cursor, weapon_row):
+    """Full detail payload for one weapon hash/version."""
+    _, variant = parse_weapon_variant(weapon_row['name'])
+    season = weapon_row['season'] or 0
+    season_label = f'Season {season}' if season else 'Unknown season'
+
+    season_icon_url, watermark_shadow_url = build_watermark_fields(weapon_row['hash'], season)
+    payload = {
+        'hash': weapon_row['hash'],
+        'display_name': weapon_row['name'],
+        'family_name': normalize_weapon_family(weapon_row['name']),
+        'variant': variant,
+        'type': weapon_row['type'],
+        'damage_type': weapon_row['damage_type'],
+        'ammo_type': weapon_row['ammo_type'],
+        'icon_url': f"https://www.bungie.net{weapon_row['icon']}" if weapon_row['icon'] else "",
+        'watermark_url': season_icon_url,
+        'watermark_shadow_url': watermark_shadow_url,
+        'description': weapon_row['description'] or '',
+        'flavor_text': weapon_row['flavor_text'] or '',
+        'season': season,
+        'version_label': f'{season_label} — {variant}',
+        'perk_columns': build_perk_columns(cursor, weapon_row['hash']),
+        'stats': parse_weapon_stats(weapon_row['stats']),
+    }
+    return attach_weapon_fields(payload, weapon_row['hash'])
 
 def get_db_connection():
     conn = sqlite3.connect('weapon_perks.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-def get_all_weapons():
+def _dedupe_versions_by_perk_pool(versions):
+    """
+    Collapse multiple hashes from the same season + damage type that share
+    an identical perk pool into a single logical release.
+    """
+    groups = {}
+    for v in versions:
+        cols = v.get('perk_columns') or []
+        col_sigs = []
+        for col in cols:
+            perk_names = sorted({p['name'] for p in col.get('perks', [])})
+            col_sigs.append((col.get('label'), tuple(perk_names)))
+        key = (
+            v.get('season') or 0,
+            v.get('damage_type'),
+            tuple(col_sigs),
+        )
+        if key not in groups:
+            groups[key] = {
+                'versions': [],
+            }
+        groups[key]['versions'].append(v)
+
+    deduped = []
+    for group in groups.values():
+        reps = group['versions']
+        primary = reps[0].copy()
+        internal_hashes = [r['hash'] for r in reps]
+        internal_names = [r['display_name'] for r in reps]
+        primary['internal_hashes'] = internal_hashes
+        primary['internal_display_names'] = internal_names
+        primary['variant_count'] = len(internal_hashes)
+        if primary['variant_count'] > 1:
+            primary['version_label'] = f"{primary['version_label']} (x{primary['variant_count']})"
+        deduped.append(primary)
+
+    deduped.sort(key=lambda v: (v.get('season') or 0, v.get('display_name', '')), reverse=True)
+    return deduped
+
+
+def build_weapon_families(include_single=True):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Get all weapons with their perks
+
     cursor.execute('''
-        SELECT w.*, 
-               GROUP_CONCAT(p.name, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_names,
-               GROUP_CONCAT(p.icon, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_icons,
-               GROUP_CONCAT(p.description, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_descriptions,
-               GROUP_CONCAT(wp.column_name, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_columns
-        FROM weapons w
-        LEFT JOIN weapon_perks wp ON w.hash = wp.weapon_hash
-        LEFT JOIN perks p ON wp.perk_hash = p.hash
-        WHERE w.tier = 'Legendary' AND w.is_current = 1
-        GROUP BY w.hash, w.name
-        ORDER BY w.name
+        SELECT hash, name, type, damage_type, season, icon
+        FROM weapons
+        WHERE tier = 'Legendary' AND is_current = 1
     ''')
-    
-    weapons = cursor.fetchall()
+
+    families = {}
+    for row in cursor.fetchall():
+        family_name = normalize_weapon_family(row['name'])
+        if family_name not in families:
+            families[family_name] = {
+                'family_name': family_name,
+                'type': row['type'],
+                'damage_type': row['damage_type'],
+                'icon_url': "",
+                'versions': [],
+            }
+        season_icon_url, watermark_shadow_url = build_watermark_fields(row['hash'], row['season'])
+        version_payload = attach_weapon_fields({
+            'hash': row['hash'],
+            'display_name': row['name'],
+            'variant': parse_weapon_variant(row['name'])[1],
+            'type': row['type'],
+            'damage_type': row['damage_type'],
+            'season': row['season'] or 0,
+            'icon_url': f"https://www.bungie.net{row['icon']}" if row['icon'] else "",
+            'watermark_url': season_icon_url,
+            'watermark_shadow_url': watermark_shadow_url,
+        }, row['hash'])
+        families[family_name]['versions'].append(version_payload)
+
     conn.close()
-    
+
     result = []
-    for weapon in weapons:
-        # Process perks by column
-        perks_by_column = {}
-        if weapon['perk_names']:
-            names = weapon['perk_names'].split('||')
-            icons = weapon['perk_icons'].split('||')
-            descriptions = weapon['perk_descriptions'].split('||')
-            columns = weapon['perk_columns'].split('||')
-            
-            for name, icon, desc, col in zip(names, icons, descriptions, columns):
-                column_key = f"Column_{col}"
-                if column_key not in perks_by_column:
-                    perks_by_column[column_key] = []
-                perks_by_column[column_key].append({
-                    'name': name,
-                    'icon_url': f"https://www.bungie.net{icon}" if icon else "",
-                    'description': desc
-                })
-        
-        result.append({
-            'hash': weapon['hash'],
-            'name': weapon['name'],
-            'type': weapon['type'],
-            'damage_type': weapon['damage_type'],
-            'icon_url': f"https://www.bungie.net{weapon['icon']}" if weapon['icon'] else "",
-            'perks': perks_by_column,
-            'season': weapon['season']
-        })
-    
+    for family in families.values():
+        # For summaries we collapse purely by season/damage, not full perk pool,
+        # to avoid the cost of loading perks for every row.
+        if not include_single and len(family['versions']) <= 1:
+            continue
+        family['versions'].sort(key=lambda v: (v['season'], v['display_name']), reverse=True)
+        primary_version = family['versions'][0]
+        if primary_version.get('icon_url'):
+            family['icon_url'] = primary_version['icon_url']
+        family['list_watermark_url'] = primary_version.get('watermark_url', '')
+        family['list_watermark_shadow_url'] = primary_version.get('watermark_shadow_url', '')
+        family['frame_uniqueness'] = primary_version.get('frame_uniqueness', 0)
+        family['perk_uniqueness'] = primary_version.get('perk_uniqueness', 0)
+        family['total_uniqueness'] = primary_version.get('total_uniqueness', 0)
+        family['archetype'] = primary_version.get('archetype', 'Unknown')
+        seasons = sorted({v['season'] for v in family['versions'] if v['season']}, reverse=True)
+        variants = sorted({v['variant'] for v in family['versions']})
+        # Count unique (season, damage_type) combos for display so that multiple
+        # hashes from the same season aren't shown as separate releases.
+        unique_releases = {(v['season'], v['damage_type']) for v in family['versions']}
+        family['count'] = len(unique_releases)
+        family['seasons'] = seasons
+        family['variants'] = variants
+        family['seasons_label'] = ', '.join(f'S{s}' for s in seasons) if seasons else 'Unknown'
+        family['variants_label'] = ', '.join(variants)
+        family['has_multiple_versions'] = family['count'] > 1
+        result.append(family)
+
+    result.sort(key=lambda f: f['family_name'].lower())
     return result
+
+
+def get_weapon_family_summaries():
+    return build_weapon_families(include_single=True)
+
+
+def get_all_weapons():
+    return get_weapon_family_summaries()
+
+def build_perk_columns(cursor, weapon_hash):
+    """Ordered roll columns (left to right) with perks for one weapon."""
+    cursor.execute('''
+        SELECT wp.column_name, wp.socket_order, p.name, p.icon, p.description
+        FROM weapon_perks wp
+        JOIN perks p ON wp.perk_hash = p.hash
+        WHERE wp.weapon_hash = ?
+        AND p.name IS NOT NULL
+        AND p.name NOT LIKE '%Shader%'
+        AND p.name NOT LIKE '%Keepsake%'
+        ORDER BY wp.socket_order, p.name
+    ''', (weapon_hash,))
+
+    columns_by_key = {}
+    names_by_key = {}
+    column_order = []
+    for row in cursor.fetchall():
+        key = (row['socket_order'], row['column_name'])
+        if key not in columns_by_key:
+            columns_by_key[key] = []
+            names_by_key[key] = set()
+            column_order.append(key)
+
+        name = row['name']
+        if name in names_by_key[key]:
+            # Skip duplicate perk names within the same column to avoid
+            # showing the same perk twice when multiple plugs map to it.
+            continue
+
+        names_by_key[key].add(name)
+        columns_by_key[key].append({
+            'name': name,
+            'icon_url': f"https://www.bungie.net{row['icon']}" if row['icon'] else "",
+            'description': row['description'] or '',
+        })
+
+    perk_columns = []
+    for index, key in enumerate(column_order):
+        label = PERK_COLUMN_LABELS[index] if index < len(PERK_COLUMN_LABELS) else f'Slot {index + 1}'
+        perk_columns.append({
+            'label': label,
+            'socket_type': key[1],
+            'perks': columns_by_key[key],
+        })
+    return perk_columns
 
 def get_weapon_perks(weapon_hash):
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Get weapon details including stats
+
     cursor.execute('''
-        SELECT w.*, 
-               GROUP_CONCAT(p.name, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_names,
-               GROUP_CONCAT(p.icon, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_icons,
-               GROUP_CONCAT(p.description, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_descriptions,
-               GROUP_CONCAT(wp.column_name, '||') FILTER (WHERE p.name IS NOT NULL AND p.name NOT LIKE '%Shader%' AND p.name NOT LIKE '%Keepsake%') as perk_columns,
+        SELECT w.*,
                GROUP_CONCAT(ws.stat_name || ':' || ws.stat_value, '||') as stats
         FROM weapons w
-        LEFT JOIN weapon_perks wp ON w.hash = wp.weapon_hash
-        LEFT JOIN perks p ON wp.perk_hash = p.hash
         LEFT JOIN weapon_stats ws ON w.hash = ws.weapon_hash
         WHERE w.hash = ? AND w.tier = 'Legendary' AND w.is_current = 1
         GROUP BY w.hash, w.name
     ''', (weapon_hash,))
-    
+
     weapon = cursor.fetchone()
-    conn.close()
-    
     if not weapon:
+        conn.close()
         return None
-    
-    # Process perks by column
-    perks_by_column = {}
-    if weapon['perk_names']:
-        names = weapon['perk_names'].split('||')
-        icons = weapon['perk_icons'].split('||')
-        descriptions = weapon['perk_descriptions'].split('||')
-        columns = weapon['perk_columns'].split('||')
-        
-        for name, icon, desc, col in zip(names, icons, descriptions, columns):
-            column_key = f"Column_{col}"
-            if column_key not in perks_by_column:
-                perks_by_column[column_key] = []
-            perks_by_column[column_key].append({
-                'name': name,
-                'icon_url': f"https://www.bungie.net{icon}" if icon else "",
-                'description': desc
-            })
-    
-    # Process stats
-    stats = {}
-    if weapon['stats']:
-        for stat in weapon['stats'].split('||'):
-            name, value = stat.split(':')
-            stats[name] = int(value)
-    
+
+    version = build_weapon_version(cursor, weapon)
+    conn.close()
+    return version
+
+
+def get_weapon_family(family_name):
+    """All released versions of a weapon family, newest first."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT w.*,
+               GROUP_CONCAT(ws.stat_name || ':' || ws.stat_value, '||') as stats
+        FROM weapons w
+        LEFT JOIN weapon_stats ws ON w.hash = ws.weapon_hash
+        WHERE w.tier = 'Legendary' AND w.is_current = 1
+        GROUP BY w.hash, w.name
+        ORDER BY w.season DESC, w.name ASC
+    ''')
+
+    versions = []
+    for row in cursor.fetchall():
+        if normalize_weapon_family(row['name']) != family_name:
+            continue
+        versions.append(build_weapon_version(cursor, row))
+
+    conn.close()
+
+    if not versions:
+        return None
+
+    versions = _dedupe_versions_by_perk_pool(versions)
+
     return {
-        'name': weapon['name'],
-        'type': weapon['type'],
-        'damage_type': weapon['damage_type'],
-        'ammo_type': weapon['ammo_type'],
-        'icon_url': f"https://www.bungie.net{weapon['icon']}" if weapon['icon'] else "",
-        'description': weapon['description'],
-        'flavor_text': weapon['flavor_text'],
-        'perks': perks_by_column,
-        'stats': stats,
-        'season': weapon['season']
+        'family_name': family_name,
+        'version_count': len(versions),
+        'versions': versions,
     }
 
-def find_duplicate_weapons():
+
+def find_duplicate_families():
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Find weapons with the same name (only Legendary weapons)
-        cursor.execute('''
-            SELECT name, COUNT(*) as count, 
-                   GROUP_CONCAT(hash) as hashes,
-                   GROUP_CONCAT(COALESCE(type, 'Unknown')) as types,
-                   GROUP_CONCAT(COALESCE(damage_type, 'Unknown')) as damage_types,
-                   GROUP_CONCAT(COALESCE(season, 0)) as seasons
-            FROM weapons
-            WHERE tier = 'Legendary'
-            GROUP BY name
-            HAVING COUNT(*) > 1
-            ORDER BY count DESC, name ASC
-        ''')
-        
-        duplicates = cursor.fetchall()
-        conn.close()
-        
-        result = []
-        for dup in duplicates:
-            hashes = dup['hashes'].split(',')
-            types = dup['types'].split(',')
-            damage_types = dup['damage_types'].split(',')
-            seasons = [int(s) for s in (dup['seasons'] or '0').split(',')]
-            
-            # Create list of weapons with their seasons
-            weapons = []
-            for i in range(len(hashes)):
-                weapons.append({
-                    'hash': hashes[i],
-                    'type': types[i],
-                    'damage_type': damage_types[i],
-                    'season': seasons[i]
-                })
-            
-            # Sort weapons by season (newest first)
-            weapons.sort(key=lambda x: x['season'], reverse=True)
-            
-            result.append({
-                'name': dup['name'],
-                'count': dup['count'],
-                'weapons': weapons
-            })
-        
-        return result
+        return build_weapon_families(include_single=False)
     except sqlite3.Error as e:
         print(f"Database error: {e}")
         return {'error': 'Database error occurred'}
     except Exception as e:
         print(f"Error: {e}")
         return {'error': 'An unexpected error occurred'}
+
+
+def find_duplicate_weapons():
+    """Backward-compatible alias for duplicate families."""
+    return find_duplicate_families()
 
 @app.route('/')
 def index():
@@ -198,17 +520,36 @@ def get_weapons():
 @app.route('/weapon/<weapon_hash>')
 def get_weapon(weapon_hash):
     weapon = get_weapon_perks(weapon_hash)
+    if weapon is None:
+        return jsonify({'error': 'Weapon not found'}), 404
     return jsonify(weapon)
+
+
+@app.route('/weapon-family/<path:family_name>')
+def get_weapon_family_route(family_name):
+    family = get_weapon_family(family_name)
+    if family is None:
+        return jsonify({'error': 'Weapon family not found'}), 404
+    return jsonify(family)
 
 @app.route('/duplicates')
 def get_duplicates():
     duplicates = find_duplicate_weapons()
+    if isinstance(duplicates, dict) and 'error' in duplicates:
+        return jsonify(duplicates), 500
     return jsonify(duplicates)
 
 @app.route('/watermarks')
 def get_watermarks():
-    # Connect to the world database
-    world_db = sqlite3.connect('world_sql_content_4bc957fe614b9ca05b3a93fc27458ae4 - Copy.sqlite3')
+    if not manifest_db_exists():
+        return jsonify({
+            'error': (
+                'Manifest database not found. '
+                'Set DESTINY_MANIFEST_DB to your Bungie world content .sqlite3 file.'
+            )
+        }), 503
+
+    world_db = sqlite3.connect(get_manifest_db_path())
     world_db.row_factory = sqlite3.Row
     
     # Get all watermarks with their associated items and details
@@ -387,4 +728,5 @@ def get_watermarks():
     return jsonify(result)
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    app.run(debug=debug) 

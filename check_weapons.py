@@ -1,6 +1,8 @@
 import sqlite3
 import json
 
+from config import get_manifest_db_path, manifest_db_exists
+
 def get_weapon_type_name(type_id):
     weapon_type_mapping = {
         0: None,  # None
@@ -25,7 +27,11 @@ def get_weapon_type_name(type_id):
     return weapon_type_mapping.get(type_id)
 
 def main():
-    db_path = "world_sql_content_4bc957fe614b9ca05b3a93fc27458ae4 - Copy.sqlite3"
+    db_path = get_manifest_db_path()
+    if not manifest_db_exists():
+        print(f"Manifest database not found at: {db_path}")
+        print("Set DESTINY_MANIFEST_DB to your Bungie world content .sqlite3 file.")
+        return
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     

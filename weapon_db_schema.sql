@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS weapon_perks (
     weapon_hash INTEGER NOT NULL,
     perk_hash INTEGER NOT NULL,
     column_name TEXT NOT NULL,
+    socket_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (weapon_hash) REFERENCES weapons(hash),
     FOREIGN KEY (perk_hash) REFERENCES perks(hash)
