@@ -73,6 +73,54 @@ WATERMARK_SEASON_PREFIXES = {
     "23968435c2095c0f81119d82": 23,
     "ed6c4762c48bd132d538ced": 23,
     "2352f9d04dc842cfcdda776": 24,
+    # Post-Edge-of-Fate / Renegades manifest watermark hashes (bridged from
+    # older manifest via shared weapon hashes, plus collectible-source checks).
+    "a0556509f8825756b6b89f59f90528ec": 1,
+    "247715dd42abef457b52ef37280c0e42": 2,
+    "7ba9d804508dd083ec20fcdb8ba0869d": 3,
+    "41d05b7cb5cc0a384af07ee9b7d36dd2": 4,
+    "9bfaa5536772e2f3ef1252813a21c4d1": 5,
+    "aeb95eb1abe8e45e1fe2573d6b3ab3c5": 6,
+    "a15754752f40aaf7b1b00aadb70a8f35": 7,
+    "4f28dc0f39238fe25d298a894ea71389": 8,
+    "da5f961ef97b78293cc498978c10e178": 9,
+    "ede19a0e1a54564243b0e5e8a18bde84": 9,   # Sundial / Dawn-era
+    # 36418dde751148bd3b95a023d491ea73 intentionally omitted — shared VoG/playlist mark
+    "7d815c943977fe71bbf00caf1bd9c514": 11,
+    "e0c16042274fd7d9cbffc4489e340c5d": 12,
+    "bce51cf90464e28026140df77c4eb6ce": 12,  # DSC / Europa / Beyond Light
+    "7b48b09fbb50634680168d5880b16bc9": 13,
+    "fc02418ad2002351a3f88faa5b14eb88": 13,
+    "6f17d323d81dd683086d88a9268f8106": 14,
+    "75adde12e4e9c9fb237e492d8258eb73": 15,
+    "bcc26708e314306fb2fc8cb98fcbf47e": 15,
+    "2c022e452f395db7b1daec1cb44631fc": 16,
+    "7b41678824a620d4f295984862702179": 16,
+    "fe8bcc20fbfaf4cac69dfb640bb0b84e": 16,
+    "5232219633cc4d90570bffda36caccf4": 17,
+    "0d6c3365022ed3b059eac467b076978f": 18,
+    "58d3ec8338cc9746a2e0cf901fbcec0e": 18,
+    "914322d11262322c839a5388db2a4943": 19,
+    "83fbcacd223402c09af4b7ab067f8cce": 19,
+    "a5e27dc822aa72787f388bd1fc115803": 19,
+    "ae5c7f708a36f754c2f68c65c88ab9aa": 20,
+    "661c84a377389a3b8a1fc38b44189b41": 24,  # Final Shape / Pale Heart / SE
+    "d105aa342f2d0c53a90a28477552f61f": 12,  # Beyond Light year world drops
+    "0ac354c1c326441716ddb15d2c158c59": 21,
+    "60d34bc853c51063b79592233c3661d4": 22,
+    "9c091ec0e22c01dacc25efb63b46eb9b": 22,
+    "0b441021fbc328e6d0e2abc895f5c96e": 23,
+    "53dc0b02306726ff1517af33ac908cef": 24,
+    "2dc17f123b7449b14144e76cfbeb2309": 25,
+    "0b212b58a961f150708bca95095e0ecb": 26,
+    "50c3ebe414c6946429934d79504922fa": 27,
+    "249813e647271a8227bae0d8a39ed505": 27,  # Edge of Fate activities
+    "6129365b4fad6754f2b8c4478fc3c4ac": 27,  # Kepler / Desert Perpetual
+    "95f7754d52d6016fdc445fb62aa7a31e": 28,  # Renegades / Equilibrium
+    "6eeb62a30439cecc7699c22f3e1fb3cf": 28,  # Renegades-era companion marks
+    # Intentionally unmapped (not a single season):
+    # e78fd9419f99464816ac8f628bc3c4af — generic/shared mark across many eras
+    # 4376a7d734583ae347acf9732aa3bb43 — Trials/events activity mark
 }
 
 
@@ -96,6 +144,8 @@ def watermark_hash_from_path(icon_watermark):
 
 def lookup_watermark_season_prefix(watermark_hash):
     """Match season by longest prefix hit on the watermark filename hash."""
+    if not watermark_hash:
+        return 0
     best_len = 0
     best_season = 0
     for prefix, season in WATERMARK_SEASON_PREFIXES.items():
@@ -104,6 +154,12 @@ def lookup_watermark_season_prefix(watermark_hash):
             best_len = len(prefix)
             best_season = season
     return best_season
+
+
+def clear_watermark_season_cache():
+    """Clear resolver cache (call after updating watermark maps)."""
+    global _watermark_season_cache
+    _watermark_season_cache = {}
 
 
 def season_from_manifest_descriptions(manifest_db, watermark_hash):

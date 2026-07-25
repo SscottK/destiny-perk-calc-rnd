@@ -5,6 +5,7 @@ import re
 
 from config import get_manifest_db_path, manifest_db_exists, stat_display_name
 from uniqueness import attach_frame_fields, attach_uniqueness_fields
+from perfect_vault import get_perfect_vault
 
 app = Flask(__name__)
 
@@ -531,6 +532,60 @@ def get_weapon_family_route(family_name):
     if family is None:
         return jsonify({'error': 'Weapon family not found'}), 404
     return jsonify(family)
+
+
+def _perfect_vault_mode():
+    mode = (request.args.get('mode') or 'full').strip().lower()
+    if mode in ('preferred', 'preferred_only', '3x3'):
+        return 'preferred_only'
+    return 'full'
+
+
+@app.route('/perfect-vault')
+def perfect_vault_route():
+    force = request.args.get('refresh', '').lower() in ('1', 'true', 'yes')
+    mode = _perfect_vault_mode()
+    try:
+        result = get_perfect_vault(force_refresh=force, mode=mode)
+    except RuntimeError as exc:
+        return jsonify({'error': str(exc)}), 503
+    # Keep response lighter for the list view; full copy plan on demand.
+    return jsonify({
+        'mode': result['mode'],
+        'plane_size': result['plane_size'],
+        'pairs_unsolved': result['pairs_unsolved'],
+        'lower_bound': result['lower_bound'],
+        'total_copies': result['total_copies'],
+        'preferred_copies': result['preferred_copies'],
+        'fallback_copies': result['fallback_copies'],
+        'preferred_weapon_models': result['preferred_weapon_models'],
+        'fallback_weapon_models': result['fallback_weapon_models'],
+        'eligible_weapon_models': result['eligible_weapon_models'],
+        'craftable_weapon_models': result['craftable_weapon_models'],
+        'obtainable_weapon_models': result['obtainable_weapon_models'],
+        'unique_models_in_vault': result['unique_models_in_vault'],
+        'duplicated_models': result.get('duplicated_models'),
+        'max_copies_one_model': result.get('max_copies_one_model'),
+        'full_plane_size': result.get('full_plane_size'),
+        'combos_only_on_fallback': result.get('combos_only_on_fallback'),
+        'weapons': result['weapons'],
+    })
+
+
+@app.route('/perfect-vault/copies')
+def perfect_vault_copies_route():
+    force = request.args.get('refresh', '').lower() in ('1', 'true', 'yes')
+    mode = _perfect_vault_mode()
+    try:
+        result = get_perfect_vault(force_refresh=force, mode=mode)
+    except RuntimeError as exc:
+        return jsonify({'error': str(exc)}), 503
+    return jsonify({
+        'mode': result['mode'],
+        'total_copies': result['total_copies'],
+        'copies': result['copies'],
+    })
+
 
 @app.route('/duplicates')
 def get_duplicates():

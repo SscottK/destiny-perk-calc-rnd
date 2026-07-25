@@ -139,9 +139,23 @@ def migrate_data():
             tier TEXT,
             season INTEGER,
             is_current BOOLEAN DEFAULT 0,
+            is_tiered INTEGER NOT NULL DEFAULT 0,
+            is_adept INTEGER NOT NULL DEFAULT 0,
+            is_craftable INTEGER NOT NULL DEFAULT 0,
+            is_obtainable INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
+
+        # Existing DBs created before these columns.
+        existing_cols = {
+            row[1] for row in weapon_db.execute("PRAGMA table_info(weapons)")
+        }
+        for col in ("is_tiered", "is_adept", "is_craftable", "is_obtainable"):
+            if col not in existing_cols:
+                weapon_db.execute(
+                    f"ALTER TABLE weapons ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0"
+                )
         
         weapon_db.execute("""
         CREATE TABLE IF NOT EXISTS weapon_stats (
@@ -455,6 +469,10 @@ def migrate_data():
         # Print summary
         print("\nMigration Summary:")
         print(f"Total weapons processed: {offset}")
+
+        from weapon_flags import enrich_weapon_flags
+        print("\nEnriching Perfect Vault flags (tiered/adept/craftable/obtainable)...")
+        enrich_weapon_flags("weapon_perks.db")
         
         # Cleanup
         manifest_db.close()

@@ -178,6 +178,20 @@
             min-width: 120px;
             white-space: nowrap;
         }
+        .vault-role-preferred {
+            color: #8fbf8f;
+        }
+        .vault-role-fallback {
+            color: #c9a86c;
+        }
+        #perfect-vault-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.25rem;
+        }
+        #perfect-vault-summary .stat strong {
+            color: #e8eef5;
+        }
         .uniqueness-scores {
             display: flex;
             flex-wrap: wrap;
@@ -631,7 +645,12 @@
 
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-weapons-tab" data-bs-toggle="tab" data-bs-target="#all-weapons" type="button" role="tab">
+                    <button class="nav-link active" id="perfect-vault-tab" data-bs-toggle="tab" data-bs-target="#perfect-vault" type="button" role="tab">
+                        Perfect Vault
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="all-weapons-tab" data-bs-toggle="tab" data-bs-target="#all-weapons" type="button" role="tab">
                         All Weapons
                     </button>
                 </li>
@@ -643,7 +662,56 @@
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="all-weapons" role="tabpanel">
+                <div class="tab-pane fade show active" id="perfect-vault" role="tabpanel">
+                    <p class="text-muted small mb-2">
+                        Covers the <em>global</em> unordered trait-combo plane (not every combo on each gun).
+                        Spread-first: one copy of each useful gun before duplicating any model.
+                        Duplicates only appear when remaining combos still need that gun.
+                        Preferred guns pack 3×3; gap-fill guns pack 1×1.
+                    </p>
+                    <div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
+                        <span class="small text-muted">Mode:</span>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Perfect Vault mode">
+                            <button type="button" class="btn btn-outline-light active" id="vault-mode-full" data-vault-mode="full">Full (3×3 + 1×1)</button>
+                            <button type="button" class="btn btn-outline-light" id="vault-mode-preferred" data-vault-mode="preferred_only">3×3 only</button>
+                        </div>
+                    </div>
+                    <div id="perfect-vault-summary" class="mb-3 small text-muted">Loading Perfect Vault…</div>
+                    <div class="table-responsive">
+                        <table class="weapon-table">
+                            <thead>
+                                <tr>
+                                    <th>Weapon</th>
+                                    <th>Role</th>
+                                    <th>Type</th>
+                                    <th title="Number of physical rolls of this weapon to keep in the vault (duplicates of the same model)">Copies</th>
+                                    <th title="Trait combinations newly covered by those copies">Combos solved</th>
+                                </tr>
+                            </thead>
+                            <tbody id="perfect-vault-body"></tbody>
+                        </table>
+                    </div>
+                    <details class="mt-3">
+                        <summary class="small text-muted">Copy-by-copy plan</summary>
+                        <div class="table-responsive mt-2">
+                            <table class="weapon-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Weapon</th>
+                                        <th>Role</th>
+                                        <th>Col 2 perks</th>
+                                        <th>Col 3 perks</th>
+                                        <th>Pairs</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perfect-vault-copies-body"></tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="tab-pane fade" id="all-weapons" role="tabpanel">
                     <p class="text-muted small mb-3">One row per weapon family. Click a row to open release details in the panel on the right.</p>
                     <div class="table-responsive">
                         <table class="weapon-table">
@@ -1309,7 +1377,117 @@
                 });
         }
 
+        let perfectVaultMode = 'full';
+
+        function loadPerfectVault(mode) {
+            if (mode) {
+                perfectVaultMode = mode;
+            }
+            const summary = document.getElementById('perfect-vault-summary');
+            const body = document.getElementById('perfect-vault-body');
+            const copiesBody = document.getElementById('perfect-vault-copies-body');
+            const modeParam = encodeURIComponent(perfectVaultMode);
+            summary.textContent = 'Computing Perfect Vault (first load may take ~15s)…';
+            body.innerHTML = '';
+            copiesBody.innerHTML = '';
+
+            document.querySelectorAll('[data-vault-mode]').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-vault-mode') === perfectVaultMode);
+            });
+
+            fetch(`/perfect-vault?mode=${modeParam}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        summary.textContent = data.error;
+                        return;
+                    }
+                    const modeLabel = data.mode === 'preferred_only' ? '3×3 only' : 'full';
+                    const fallbackNote = data.mode === 'preferred_only'
+                        ? `<span class="stat"><strong>${data.combos_only_on_fallback || 0}</strong> combos exist only on 1×1 guns (excluded)</span>`
+                        : `<span class="stat"><strong>${data.fallback_copies}</strong> gap-fill (1×1)</span>`;
+                    summary.innerHTML = `
+                        <span class="stat">mode <strong>${modeLabel}</strong></span>
+                        <span class="stat"><strong>${data.plane_size}</strong> unique trait combos</span>
+                        <span class="stat"><strong>${data.total_copies}</strong> vault copies</span>
+                        <span class="stat">lower bound <strong>${data.lower_bound}</strong></span>
+                        <span class="stat"><strong>${data.preferred_copies}</strong> preferred (3×3)</span>
+                        ${fallbackNote}
+                        <span class="stat"><strong>${data.eligible_weapon_models || 0}</strong> models in plane</span>
+                        <span class="stat"><strong>${data.unique_models_in_vault}</strong> distinct guns</span>
+                        <span class="stat"><strong>${data.duplicated_models || 0}</strong> guns need duplicates</span>
+                        <span class="stat">max copies of one gun <strong>${data.max_copies_one_model || 0}</strong></span>
+                        <span class="stat">unsolved <strong>${data.pairs_unsolved}</strong></span>
+                    `;
+
+                    (data.weapons || []).forEach(weapon => {
+                        const row = document.createElement('tr');
+                        const roleClass = weapon.role === 'preferred'
+                            ? 'vault-role-preferred'
+                            : 'vault-role-fallback';
+                        const roleLabel = weapon.role === 'preferred' ? 'Preferred' : 'Gap-fill';
+                        const flags = [
+                            weapon.is_tiered ? 'tiered' : null,
+                            weapon.is_adept ? 'adept' : null,
+                            weapon.is_craftable ? 'craftable' : null,
+                            weapon.is_obtainable ? 'obtainable' : null,
+                        ].filter(Boolean).join(', ');
+                        row.innerHTML = `
+                            <td class="weapon-name-cell">
+                                <div class="d-flex align-items-center">
+                                    <div class="weapon-icon-wrap">
+                                        <img src="${escapeHtml(weapon.icon_url)}" class="weapon-icon" alt="${escapeHtml(weapon.name)}" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                                    </div>
+                                    <div>
+                                        <div>${escapeHtml(weapon.name)}</div>
+                                        <div class="small text-muted">${escapeHtml(flags || 'standard')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="${roleClass}">${roleLabel}</td>
+                            <td>${escapeHtml(weapon.type || '')}</td>
+                            <td><span class="badge bg-secondary">${weapon.copies}</span></td>
+                            <td>${weapon.pairs_solved}</td>
+                        `;
+                        body.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading Perfect Vault:', error);
+                    summary.textContent = 'Could not load Perfect Vault.';
+                });
+
+            fetch(`/perfect-vault/copies?mode=${modeParam}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    (data.copies || []).forEach(copy => {
+                        const row = document.createElement('tr');
+                        const roleClass = copy.role === 'preferred'
+                            ? 'vault-role-preferred'
+                            : 'vault-role-fallback';
+                        row.innerHTML = `
+                            <td>${copy.copy_index}</td>
+                            <td>${escapeHtml(copy.name)}</td>
+                            <td class="${roleClass}">${copy.role === 'preferred' ? 'Preferred' : 'Gap-fill'}</td>
+                            <td class="small">${escapeHtml((copy.col2_perks || []).join(', '))}</td>
+                            <td class="small">${escapeHtml((copy.col3_perks || []).join(', '))}</td>
+                            <td>${copy.pairs_solved}</td>
+                        `;
+                        copiesBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error loading Perfect Vault copies:', error));
+        }
+
+        document.querySelectorAll('[data-vault-mode]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                loadPerfectVault(btn.getAttribute('data-vault-mode'));
+            });
+        });
+
         initSortableHeaders();
+        loadPerfectVault();
         loadWeapons();
         loadWatermarks();
 
