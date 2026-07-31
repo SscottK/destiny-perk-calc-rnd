@@ -1,11 +1,12 @@
 {
   "1041028435": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "105164264": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "105306149": {
     "_source": "obtainable_weapons_sheet",
@@ -25,7 +26,8 @@
   },
   "1094005544": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1106017703": {
     "_source": "obtainable_weapons_sheet",
@@ -33,11 +35,12 @@
   },
   "1107446438": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "1150492185": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1193318082": {
     "_source": "obtainable_weapons_sheet",
@@ -45,7 +48,8 @@
   },
   "1197073834": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1218113510": {
     "_source": "obtainable_weapons_sheet",
@@ -73,7 +77,8 @@
   },
   "1332123064": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1401300690": {
     "_source": "obtainable_weapons_sheet",
@@ -81,7 +86,8 @@
   },
   "1405095983": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1411560894": {
     "_source": "obtainable_weapons_sheet",
@@ -89,15 +95,18 @@
   },
   "1469372193": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1516542120": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1524387902": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1532276803": {
     "_source": "obtainable_weapons_sheet",
@@ -105,7 +114,8 @@
   },
   "153979397": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1552443158": {
     "_source": "obtainable_weapons_sheet",
@@ -113,15 +123,18 @@
   },
   "1559068369": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "157601190": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1584643826": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1587953057": {
     "_source": "obtainable_weapons_sheet",
@@ -129,11 +142,13 @@
   },
   "1612781792": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1644501332": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1663482635": {
     "_source": "obtainable_weapons_sheet",
@@ -161,15 +176,18 @@
   },
   "1704597062": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1713388226": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1716620044": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1764868900": {
     "_source": "obtainable_weapons_sheet",
@@ -193,7 +211,8 @@
   },
   "1821529912": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1875512595": {
     "_source": "obtainable_weapons_sheet",
@@ -201,23 +220,27 @@
   },
   "188882152": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1889005379": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1896309757": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1903182562": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "190747610": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1911060537": {
     "_source": "obtainable_weapons_sheet",
@@ -229,11 +252,12 @@
   },
   "1942143745": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1948035256": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "1952295804": {
     "_source": "obtainable_weapons_sheet",
@@ -241,7 +265,8 @@
   },
   "1956186483": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1973107014": {
     "_source": "obtainable_weapons_sheet",
@@ -249,7 +274,7 @@
   },
   "1975125963": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "1979417829": {
     "_source": "obtainable_weapons_sheet",
@@ -257,15 +282,18 @@
   },
   "198068259": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "1996201272": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2026755633": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2034215657": {
     "_source": "obtainable_weapons_sheet",
@@ -273,15 +301,17 @@
   },
   "2039776723": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "2065366342": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2111625436": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2119346509": {
     "_source": "obtainable_weapons_sheet",
@@ -289,7 +319,8 @@
   },
   "214545213": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2155534128": {
     "_source": "obtainable_weapons_sheet",
@@ -301,7 +332,8 @@
   },
   "216983039": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "218787950": {
     "_source": "obtainable_weapons_sheet",
@@ -313,7 +345,8 @@
   },
   "2191451996": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2198166292": {
     "_source": "obtainable_weapons_sheet",
@@ -321,7 +354,8 @@
   },
   "2199554524": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2218569744": {
     "_source": "obtainable_weapons_sheet",
@@ -337,7 +371,8 @@
   },
   "2298039571": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2300143112": {
     "_source": "obtainable_weapons_sheet",
@@ -353,7 +388,8 @@
   },
   "2349907931": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2350330520": {
     "_source": "obtainable_weapons_sheet",
@@ -369,23 +405,27 @@
   },
   "2423071981": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2429822976": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2448907086": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "2450917538": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2461640837": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2478792241": {
     "_source": "obtainable_weapons_sheet",
@@ -397,7 +437,8 @@
   },
   "2490460292": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2499834164": {
     "_source": "obtainable_weapons_sheet",
@@ -405,7 +446,8 @@
   },
   "2510526114": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2531963421": {
     "_source": "obtainable_weapons_sheet",
@@ -413,27 +455,32 @@
   },
   "253196586": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2533990645": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2557966895": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2588048270": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2591241074": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "2591257541": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2596736862": {
     "_source": "obtainable_weapons_sheet",
@@ -449,7 +496,8 @@
   },
   "2633186522": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2666273249": {
     "_source": "obtainable_weapons_sheet",
@@ -457,7 +505,7 @@
   },
   "2671639706": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "2680976411": {
     "_source": "obtainable_weapons_sheet",
@@ -465,7 +513,8 @@
   },
   "2699423382": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2708806099": {
     "_source": "obtainable_weapons_sheet",
@@ -473,7 +522,8 @@
   },
   "2715240478": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2723241847": {
     "_source": "obtainable_weapons_sheet",
@@ -505,15 +555,18 @@
   },
   "2826850739": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2832639510": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2838279629": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2856514843": {
     "_source": "obtainable_weapons_sheet",
@@ -533,7 +586,8 @@
   },
   "2875763009": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2884070594": {
     "_source": "obtainable_weapons_sheet",
@@ -545,11 +599,12 @@
   },
   "2888266564": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "2889501828": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2896109856": {
     "_source": "obtainable_weapons_sheet",
@@ -561,7 +616,8 @@
   },
   "2916547559": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2919334548": {
     "_source": "obtainable_weapons_sheet",
@@ -577,7 +633,8 @@
   },
   "2925315757": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "293709640": {
     "_source": "obtainable_weapons_sheet",
@@ -585,7 +642,8 @@
   },
   "2953199259": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "297296830": {
     "_source": "obtainable_weapons_sheet",
@@ -593,7 +651,8 @@
   },
   "2979764077": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "2979965246": {
     "_source": "obtainable_weapons_sheet",
@@ -601,7 +660,8 @@
   },
   "3001598094": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3009199534": {
     "_source": "obtainable_weapons_sheet",
@@ -613,11 +673,13 @@
   },
   "3021407779": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3040742682": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3058845782": {
     "_source": "obtainable_weapons_sheet",
@@ -625,15 +687,18 @@
   },
   "3085559077": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3110377595": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3125454907": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3156551028": {
     "_source": "obtainable_weapons_sheet",
@@ -661,15 +726,18 @@
   },
   "3215649176": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3218364298": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3221722018": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3232203524": {
     "_source": "obtainable_weapons_sheet",
@@ -681,7 +749,8 @@
   },
   "3236112986": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3240434620": {
     "_source": "obtainable_weapons_sheet",
@@ -701,7 +770,7 @@
   },
   "3258665412": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "3267997292": {
     "_source": "obtainable_weapons_sheet",
@@ -709,11 +778,13 @@
   },
   "3273807888": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3285784871": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3293207827": {
     "_source": "obtainable_weapons_sheet",
@@ -721,19 +792,22 @@
   },
   "3293524502": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3303271523": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3318545829": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3356526253": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "3377522331": {
     "_source": "obtainable_weapons_sheet",
@@ -745,7 +819,8 @@
   },
   "3421075982": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3423493037": {
     "_source": "obtainable_weapons_sheet",
@@ -793,15 +868,17 @@
   },
   "3535742959": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3556730800": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3565520715": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "3574168117": {
     "_source": "obtainable_weapons_sheet",
@@ -809,7 +886,8 @@
   },
   "357669417": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "358190158": {
     "_source": "obtainable_weapons_sheet",
@@ -821,11 +899,13 @@
   },
   "3595694326": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3602242905": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3612142623": {
     "_source": "obtainable_weapons_sheet",
@@ -833,19 +913,23 @@
   },
   "3613444087": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3615748501": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3618823368": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3620277039": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3635821806": {
     "_source": "obtainable_weapons_sheet",
@@ -857,7 +941,8 @@
   },
   "3667861447": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "367772693": {
     "_source": "obtainable_weapons_sheet",
@@ -877,7 +962,8 @@
   },
   "3708636616": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3709368142": {
     "_source": "obtainable_weapons_sheet",
@@ -885,15 +971,17 @@
   },
   "3718184802": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3738678140": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "3744058588": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3769072067": {
     "_source": "obtainable_weapons_sheet",
@@ -945,7 +1033,8 @@
   },
   "3902351469": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3910523587": {
     "_source": "obtainable_weapons_sheet",
@@ -957,15 +1046,18 @@
   },
   "3922217119": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3926153598": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3926987546": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3946054154": {
     "_source": "obtainable_weapons_sheet",
@@ -977,11 +1069,13 @@
   },
   "3960301269": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "3961462214": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "396910433": {
     "_source": "obtainable_weapons_sheet",
@@ -1005,7 +1099,8 @@
   },
   "4011513985": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4019651319": {
     "_source": "obtainable_weapons_sheet",
@@ -1013,7 +1108,8 @@
   },
   "4028000428": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4032097591": {
     "_source": "obtainable_weapons_sheet",
@@ -1021,15 +1117,18 @@
   },
   "4045298483": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4049127142": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4059111040": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4066778670": {
     "_source": "obtainable_weapons_sheet",
@@ -1045,7 +1144,8 @@
   },
   "4077196130": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4089030727": {
     "_source": "obtainable_weapons_sheet",
@@ -1057,7 +1157,8 @@
   },
   "4104613038": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4106258882": {
     "_source": "obtainable_weapons_sheet",
@@ -1069,15 +1170,18 @@
   },
   "4113452819": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4116518582": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4118334987": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4118936670": {
     "_source": "obtainable_weapons_sheet",
@@ -1093,11 +1197,13 @@
   },
   "4146673634": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4146673635": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4148460558": {
     "_source": "obtainable_weapons_sheet",
@@ -1109,11 +1215,13 @@
   },
   "4176551594": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4206550094": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4207120603": {
     "_source": "obtainable_weapons_sheet",
@@ -1129,19 +1237,22 @@
   },
   "4230993599": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "4257236930": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4276696962": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4287947559": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "4292849692": {
     "_source": "obtainable_weapons_sheet",
@@ -1149,15 +1260,18 @@
   },
   "435216110": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "438540299": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "471764396": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "480368036": {
     "_source": "obtainable_weapons_sheet",
@@ -1165,7 +1279,8 @@
   },
   "491078457": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "496728945": {
     "_source": "obtainable_weapons_sheet",
@@ -1201,11 +1316,13 @@
   },
   "575830664": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "578459533": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "602331467": {
     "_source": "obtainable_weapons_sheet",
@@ -1217,7 +1334,7 @@
   },
   "676270382": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "679281855": {
     "_source": "obtainable_weapons_sheet",
@@ -1225,7 +1342,8 @@
   },
   "694275488": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "702001725": {
     "_source": "obtainable_weapons_sheet",
@@ -1233,19 +1351,23 @@
   },
   "713132408": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "738446555": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "747743637": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "768696858": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "771811870": {
     "_source": "obtainable_weapons_sheet",
@@ -1253,15 +1375,18 @@
   },
   "805677041": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "834081972": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "843171043": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "852551895": {
     "_source": "obtainable_weapons_sheet",
@@ -1269,7 +1394,8 @@
   },
   "866434750": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "870893339": {
     "_source": "obtainable_weapons_sheet",
@@ -1277,7 +1403,7 @@
   },
   "875848769": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_vendor6": true
   },
   "877384": {
     "_source": "obtainable_weapons_sheet",
@@ -1293,15 +1419,18 @@
   },
   "938936806": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "963732594": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "963732595": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   },
   "970034755": {
     "_source": "obtainable_weapons_sheet",
@@ -1313,6 +1442,7 @@
   },
   "979721268": {
     "_source": "obtainable_weapons_sheet",
-    "is_tiered": true
+    "is_tiered": true,
+    "is_vendor6": true
   }
 }

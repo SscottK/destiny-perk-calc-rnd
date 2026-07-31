@@ -36,6 +36,18 @@ def test_swapped_columns_same_combo():
     assert len(build_pair_plane([a, b])) == 1
 
 
+def test_same_perk_both_columns_ignored():
+    assert combo_key("Rampage", "Rampage") is None
+    weapon = {"col2": {"Rampage", "Outlaw"}, "col3": {"Rampage", "Kill Clip"}}
+    combos = weapon_combos(weapon)
+    assert combo_key("Outlaw", "Rampage") in combos
+    assert combo_key("Outlaw", "Kill Clip") in combos
+    assert combo_key("Rampage", "Kill Clip") in combos
+    # Rampage+Rampage is not a combo we solve for.
+    assert all(len(c) == 2 for c in combos)
+    assert len(combos) == 3
+
+
 def test_pack_3x3_covers_up_to_nine_combos():
     relevant = {(f"A{i}", f"B{j}") for i in range(4) for j in range(4)}
     move = _pack_from_relevant(relevant, 3)
@@ -163,6 +175,7 @@ if __name__ == "__main__":
     test_normalize_family_strips_adept()
     test_plane_uses_unordered_combinations()
     test_swapped_columns_same_combo()
+    test_same_perk_both_columns_ignored()
     test_pack_3x3_covers_up_to_nine_combos()
     test_pack_1x1_covers_one_combo()
     test_eligible_requires_craftable_or_obtainable()

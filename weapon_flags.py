@@ -1,4 +1,7 @@
-"""Detect and persist Perfect Vault weapon flags (tiered/adept/craftable/obtainable)."""
+"""Detect and persist Perfect Vault weapon flags.
+
+Flags: is_tiered, is_adept, is_vendor6, is_craftable, is_obtainable.
+"""
 
 from __future__ import annotations
 
@@ -39,7 +42,7 @@ def load_json_overlay(path: Path):
 
 
 def load_tier_overlay():
-    """hash -> {is_tiered?, is_adept?}"""
+    """hash -> {is_tiered?, is_adept?, is_vendor6?}"""
     raw = load_json_overlay(TIER_OVERLAY_PATH)
     out = {}
     for item_hash, value in raw.items():
@@ -88,7 +91,13 @@ def detect_is_craftable(recipe_item_hash=None):
 
 def ensure_flag_columns(conn):
     cols = {row[1] for row in conn.execute("PRAGMA table_info(weapons)")}
-    for col in ("is_tiered", "is_adept", "is_craftable", "is_obtainable"):
+    for col in (
+        "is_tiered",
+        "is_adept",
+        "is_vendor6",
+        "is_craftable",
+        "is_obtainable",
+    ):
         if col not in cols:
             conn.execute(
                 f"ALTER TABLE weapons ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0"
@@ -156,12 +165,15 @@ def enrich_weapon_flags(weapon_db_path="weapon_perks.db"):
         )
         is_craftable = detect_is_craftable(meta.get("recipe_item_hash"))
         is_obtainable = bool(obtain_overlay.get(item_hash, False))
+        is_vendor6 = False
 
         override = tier_overlay.get(item_hash) or {}
         if "is_adept" in override:
             is_adept = bool(override["is_adept"])
         if "is_tiered" in override:
             is_tiered = bool(override["is_tiered"])
+        if "is_vendor6" in override:
+            is_vendor6 = bool(override["is_vendor6"])
         if "is_craftable" in override:
             is_craftable = bool(override["is_craftable"])
         if "is_obtainable" in override:
@@ -170,6 +182,7 @@ def enrich_weapon_flags(weapon_db_path="weapon_perks.db"):
         updates.append((
             1 if is_tiered else 0,
             1 if is_adept else 0,
+            1 if is_vendor6 else 0,
             1 if is_craftable else 0,
             1 if is_obtainable else 0,
             row["hash"],
@@ -178,7 +191,8 @@ def enrich_weapon_flags(weapon_db_path="weapon_perks.db"):
     weapon_db.executemany(
         """
         UPDATE weapons
-        SET is_tiered = ?, is_adept = ?, is_craftable = ?, is_obtainable = ?
+        SET is_tiered = ?, is_adept = ?, is_vendor6 = ?,
+            is_craftable = ?, is_obtainable = ?
         WHERE hash = ?
         """,
         updates,
@@ -188,9 +202,11 @@ def enrich_weapon_flags(weapon_db_path="weapon_perks.db"):
     counts = weapon_db.execute(
         """
         SELECT
-          SUM(CASE WHEN is_tiered = 1 OR is_adept = 1 THEN 1 ELSE 0 END),
+          SUM(CASE WHEN is_tiered = 1 OR is_adept = 1 OR is_vendor6 = 1
+                   THEN 1 ELSE 0 END),
           SUM(is_tiered),
           SUM(is_adept),
+          SUM(is_vendor6),
           SUM(is_craftable),
           SUM(is_obtainable),
           SUM(CASE WHEN is_craftable = 1 OR is_obtainable = 1 THEN 1 ELSE 0 END),
@@ -200,17 +216,19 @@ def enrich_weapon_flags(weapon_db_path="weapon_perks.db"):
     ).fetchone()
     weapon_db.close()
 
-    preferred, tiered, adept, craftable, obtainable, eligible, total = counts
+    preferred, tiered, adept, vendor6, craftable, obtainable, eligible, total = counts
     print(
         f"Updated flags for {total} weapons "
         f"(preferred={preferred}, is_tiered={tiered}, is_adept={adept}, "
-        f"craftable={craftable}, obtainable={obtainable}, eligible={eligible})"
+        f"vendor6={vendor6}, craftable={craftable}, obtainable={obtainable}, "
+        f"eligible={eligible})"
     )
     return {
         "total": total,
         "preferred": preferred or 0,
         "is_tiered": tiered or 0,
         "is_adept": adept or 0,
+        "is_vendor6": vendor6 or 0,
         "is_craftable": craftable or 0,
         "is_obtainable": obtainable or 0,
         "eligible": eligible or 0,

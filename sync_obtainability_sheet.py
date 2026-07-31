@@ -2,9 +2,9 @@
 
 Reads obtainable_weapons_sheet.csv (export of the Google Sheet) and writes:
   - obtainability_overlay.json  → is_obtainable
-  - merges preferred packing hints into tier_flags_overlay.json for:
-      * sheet Tiered? = Yes
-      * Commander Zavala / The Drifter / Lord Shaxx (6-perk drops)
+  - merges packing hints into tier_flags_overlay.json:
+      * sheet Tiered? = Yes  -> is_tiered
+      * Commander Zavala / The Drifter / Lord Shaxx -> is_vendor6 (6-perk drops)
 
 Name matching:
   - exact name
@@ -223,7 +223,11 @@ def sync_overlays(weapon_db_path="weapon_perks.db", sheet_path: Path = SHEET_PAT
         item_hash = best["hash"]
         obtain[str(item_hash)] = True
         if row["tiered"] or row["vendor6"]:
-            preferred_hints[str(item_hash)] = {"is_tiered": True}
+            hint = preferred_hints.setdefault(str(item_hash), {})
+            if row["tiered"]:
+                hint["is_tiered"] = True
+            if row["vendor6"]:
+                hint["is_vendor6"] = True
 
     OBTAIN_OVERLAY_PATH.write_text(json.dumps(obtain, indent=2, sort_keys=True) + "\n")
 
@@ -246,7 +250,7 @@ def sync_overlays(weapon_db_path="weapon_perks.db", sheet_path: Path = SHEET_PAT
         entry = tier_raw.get(item_hash)
         if not isinstance(entry, dict):
             entry = {}
-        entry["is_tiered"] = True
+        entry.update(hints)
         entry["_source"] = "obtainable_weapons_sheet"
         tier_raw[item_hash] = entry
 

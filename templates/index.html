@@ -617,6 +617,93 @@
         .perk-view-buttons .btn {
             font-size: 0.78rem;
         }
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+        .secondary-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .secondary-nav .nav-label {
+            padding-left: 0.5rem;
+        }
+        .secondary-nav .nav-link {
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            border: 1px solid #3a4250;
+            border-radius: 999px;
+            color: #9aa7b6;
+        }
+        .secondary-nav .nav-link:hover {
+            color: #e8eef5;
+            border-color: #5c6a7d;
+        }
+        .secondary-nav .nav-link.active {
+            color: #0f1318;
+            background-color: #cfd9e4;
+            border-color: #cfd9e4;
+        }
+        .solver-compare summary {
+            cursor: pointer;
+        }
+        .vault-weapon-row {
+            cursor: pointer;
+        }
+        .vault-weapon-row.expanded td {
+            background-color: #2f3640;
+        }
+        .vault-detail-row td {
+            background-color: #23272e;
+        }
+        .vault-detail {
+            padding: 0.75rem 0.25rem;
+        }
+        .vault-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .vault-pool-col {
+            flex: 1 1 300px;
+        }
+        .perk-chip {
+            display: inline-block;
+            margin: 0 0.25rem 0.25rem 0;
+            padding: 0.1rem 0.5rem;
+            border: 1px solid #3a4250;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: #7f8b99;
+        }
+        .perk-chip-used {
+            color: #0f1318;
+            background-color: #8fbf8f;
+            border-color: #8fbf8f;
+        }
+        .vault-roll {
+            padding: 0.3rem 0;
+            border-top: 1px solid #2f3640;
+            font-size: 0.8rem;
+        }
+        .vault-roll-index {
+            color: #7f8b99;
+            margin-right: 0.5rem;
+        }
+        .vault-roll-perks {
+            color: #e8eef5;
+        }
+        .vault-roll-sep {
+            color: #7f8b99;
+            margin: 0 0.4rem;
+        }
+        .vault-roll-combos {
+            margin-left: 1.6rem;
+        }
         .weapon-table tr.selected-row td {
             background-color: #2f3640 !important;
             box-shadow: inset 3px 0 0 #7aa5d2;
@@ -626,73 +713,77 @@
 <body>
     <div class="page-wrapper">
     <div class="container-fluid mt-4">
-        <h1 class="mb-4 text-center">Destiny Weapon Perks</h1>
-        <div class="table-container">
-            <div class="filters">
-                <div class="row">
-                    <div class="col-md-6">
-                        <select class="form-select" id="weaponTypeFilter">
-                            <option value="">All Weapon Types</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <select class="form-select" id="damageTypeFilter">
-                            <option value="">All Damage Types</option>
-                        </select>
-                    </div>
-                </div>
+        <div class="app-header mb-4">
+            <div>
+                <h1 class="mb-1">The Perfect Vault</h1>
+                <p class="text-muted small mb-0">
+                    The smallest set of guns — and the exact perks to roll on each — that covers every
+                    trait combination in the game.
+                </p>
             </div>
-
-            <ul class="nav nav-tabs" role="tablist">
-                <li class="nav-item" role="presentation">
+            <ul class="nav secondary-nav" role="tablist" aria-label="Views">
+                <li class="nav-item">
                     <button class="nav-link active" id="perfect-vault-tab" data-bs-toggle="tab" data-bs-target="#perfect-vault" type="button" role="tab">
-                        Perfect Vault
+                        Vault solution
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item nav-label small text-muted">Reference</li>
+                <li class="nav-item">
                     <button class="nav-link" id="all-weapons-tab" data-bs-toggle="tab" data-bs-target="#all-weapons" type="button" role="tab">
                         All Weapons
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item">
                     <button class="nav-link" id="watermarks-tab" data-bs-toggle="tab" data-bs-target="#watermarks" type="button" role="tab">
                         Watermarks
                     </button>
                 </li>
             </ul>
-
+        </div>
+        <div class="table-container">
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="perfect-vault" role="tabpanel">
                     <p class="text-muted small mb-2">
-                        Covers the <em>global</em> unordered trait-combo plane (not every combo on each gun).
-                        Spread-first: one copy of each useful gun before duplicating any model.
-                        Duplicates only appear when remaining combos still need that gun.
-                        Preferred guns pack 3×3; gap-fill guns pack 1×1.
+                        Combos are unordered: A+B is the same roll as B+A anywhere it appears.
+                        The rarest combinations are solved first (low <strong>POS</strong>, the number of guns
+                        that can roll them) on the most flexible guns (high <strong>GFS</strong>, the sum of POS
+                        across everything a gun can roll).
+                        <br>
+                        3×3 guns are filled first and absorb every combo they can reach; 1×1 guns only gap-fill
+                        the combos that exist on no 3×3 gun. Copies already in the vault are topped up before
+                        any duplicate is bought.
                     </p>
-                    <div class="mb-2 d-flex flex-wrap gap-2 align-items-center">
-                        <span class="small text-muted">Mode:</span>
-                        <div class="btn-group btn-group-sm" role="group" aria-label="Perfect Vault mode">
-                            <button type="button" class="btn btn-outline-light active" id="vault-mode-full" data-vault-mode="full">Full (3×3 + 1×1)</button>
-                            <button type="button" class="btn btn-outline-light" id="vault-mode-preferred" data-vault-mode="preferred_only">3×3 only</button>
+                    <details class="mb-3 solver-compare">
+                        <summary class="small text-muted">Compare with the older solvers</summary>
+                        <div class="btn-group btn-group-sm mt-2" role="group" aria-label="Vault solver">
+                            <button type="button" class="btn btn-outline-light active" id="vault-mode-pos-gfs" data-vault-mode="pos_gfs" title="Rarest combos (low POS) assigned to the most flexible guns (high GFS), 3×3 first">POS / GFS</button>
+                            <button type="button" class="btn btn-outline-light" id="vault-mode-full" data-vault-mode="full" title="Original greedy set cover over all eligible guns">Greedy (3×3 + 1×1)</button>
+                            <button type="button" class="btn btn-outline-light" id="vault-mode-preferred" data-vault-mode="preferred_only" title="Greedy set cover using only 3×3 guns">Greedy 3×3 only</button>
                         </div>
-                    </div>
+                        <div class="small text-muted mt-2">
+                            The greedy solvers take ~30s on first load and are kept only for comparison.
+                        </div>
+                    </details>
                     <div id="perfect-vault-summary" class="mb-3 small text-muted">Loading Perfect Vault…</div>
                     <div class="table-responsive">
+                        <p class="text-muted small mb-2">Click a weapon to see its full perk pool and every roll planned for it.</p>
                         <table class="weapon-table">
                             <thead>
                                 <tr>
                                     <th>Weapon</th>
                                     <th>Role</th>
                                     <th>Type</th>
+                                    <th title="Perks this gun can roll in each trait column, and how many combos that makes">Perk pool</th>
                                     <th title="Number of physical rolls of this weapon to keep in the vault (duplicates of the same model)">Copies</th>
                                     <th title="Trait combinations newly covered by those copies">Combos solved</th>
+                                    <th title="Gun Flexibility Score: sum of POS over every combo this gun can roll (POS / GFS mode only)">GFS</th>
                                 </tr>
                             </thead>
                             <tbody id="perfect-vault-body"></tbody>
                         </table>
                     </div>
-                    <details class="mt-3">
-                        <summary class="small text-muted">Copy-by-copy plan</summary>
+                    <details class="mt-3" open>
+                        <summary class="small text-muted">Copy-by-copy roll plan (every gun and the perks it should roll)</summary>
                         <div class="table-responsive mt-2">
                             <table class="weapon-table">
                                 <thead>
@@ -703,6 +794,8 @@
                                         <th>Col 2 perks</th>
                                         <th>Col 3 perks</th>
                                         <th>Pairs</th>
+                                        <th title="Perk Occurance Score of the rarest combo this copy was created for (POS / GFS mode only)">Best POS</th>
+                                        <th title="Gun Flexibility Score of this model (POS / GFS mode only)">GFS</th>
                                     </tr>
                                 </thead>
                                 <tbody id="perfect-vault-copies-body"></tbody>
@@ -713,6 +806,20 @@
 
                 <div class="tab-pane fade" id="all-weapons" role="tabpanel">
                     <p class="text-muted small mb-3">One row per weapon family. Click a row to open release details in the panel on the right.</p>
+                    <div class="filters">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-select" id="weaponTypeFilter">
+                                    <option value="">All Weapon Types</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select" id="damageTypeFilter">
+                                    <option value="">All Damage Types</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="weapon-table">
                             <thead>
@@ -1377,7 +1484,83 @@
                 });
         }
 
-        let perfectVaultMode = 'full';
+        let perfectVaultMode = 'pos_gfs';
+        let vaultCopiesByHash = {};
+
+        function poolLabel(weapon) {
+            const col2 = (weapon.col2_pool || []).length;
+            const col3 = (weapon.col3_pool || []).length;
+            if (!col2 || !col3) return '—';
+            const combos = weapon.pool_combos || col2 * col3;
+            return `${col2} × ${col3} = ${combos} combos`;
+        }
+
+        function perkChips(perks, used) {
+            return (perks || []).map(perk => {
+                const cls = used.has(perk) ? 'perk-chip perk-chip-used' : 'perk-chip';
+                return `<span class="${cls}">${escapeHtml(perk)}</span>`;
+            }).join('');
+        }
+
+        function vaultRollMarkup(copy) {
+            const combos = (copy.sample_pairs || [])
+                .map(pair => escapeHtml(pair.join(' + ')))
+                .join(' · ');
+            const rarest = copy.best_pos ? `, rarest POS ${copy.best_pos}` : '';
+            return `
+                <div class="vault-roll">
+                    <div>
+                        <span class="vault-roll-index">#${copy.copy_index}</span>
+                        <span class="vault-roll-perks">${escapeHtml((copy.col2_perks || []).join(', '))}</span>
+                        <span class="vault-roll-sep">×</span>
+                        <span class="vault-roll-perks">${escapeHtml((copy.col3_perks || []).join(', '))}</span>
+                        <span class="text-muted small">${copy.pairs_solved} combo${copy.pairs_solved === 1 ? '' : 's'}${rarest}</span>
+                    </div>
+                    <div class="small text-muted vault-roll-combos">${combos}</div>
+                </div>`;
+        }
+
+        function toggleVaultWeaponDetail(row, weapon) {
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains('vault-detail-row')) {
+                next.remove();
+                row.classList.remove('expanded');
+                return;
+            }
+
+            const copies = vaultCopiesByHash[weapon.hash] || [];
+            const usedCol2 = new Set();
+            const usedCol3 = new Set();
+            copies.forEach(copy => {
+                (copy.col2_perks || []).forEach(perk => usedCol2.add(perk));
+                (copy.col3_perks || []).forEach(perk => usedCol3.add(perk));
+            });
+
+            const detail = document.createElement('tr');
+            detail.className = 'vault-detail-row';
+            detail.innerHTML = `
+                <td colspan="7">
+                    <div class="vault-detail">
+                        <div class="vault-pool">
+                            <div class="vault-pool-col">
+                                <div class="small text-muted mb-1">Column 2 pool (${(weapon.col2_pool || []).length} perks)</div>
+                                ${perkChips(weapon.col2_pool, usedCol2)}
+                            </div>
+                            <div class="vault-pool-col">
+                                <div class="small text-muted mb-1">Column 3 pool (${(weapon.col3_pool || []).length} perks)</div>
+                                ${perkChips(weapon.col3_pool, usedCol3)}
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-3 mb-1">
+                            Highlighted perks are the ones this plan rolls.
+                            ${copies.length} cop${copies.length === 1 ? 'y' : 'ies'} to keep:
+                        </div>
+                        ${copies.map(vaultRollMarkup).join('') || '<div class="small text-muted">Roll plan still loading…</div>'}
+                    </div>
+                </td>`;
+            row.after(detail);
+            row.classList.add('expanded');
+        }
 
         function loadPerfectVault(mode) {
             if (mode) {
@@ -1387,9 +1570,12 @@
             const body = document.getElementById('perfect-vault-body');
             const copiesBody = document.getElementById('perfect-vault-copies-body');
             const modeParam = encodeURIComponent(perfectVaultMode);
-            summary.textContent = 'Computing Perfect Vault (first load may take ~15s)…';
+            summary.textContent = perfectVaultMode === 'pos_gfs'
+                ? 'Solving the vault…'
+                : 'Computing Perfect Vault (first load may take ~30s)…';
             body.innerHTML = '';
             copiesBody.innerHTML = '';
+            vaultCopiesByHash = {};
 
             document.querySelectorAll('[data-vault-mode]').forEach(btn => {
                 btn.classList.toggle('active', btn.getAttribute('data-vault-mode') === perfectVaultMode);
@@ -1402,12 +1588,22 @@
                         summary.textContent = data.error;
                         return;
                     }
-                    const modeLabel = data.mode === 'preferred_only' ? '3×3 only' : 'full';
-                    const fallbackNote = data.mode === 'preferred_only'
-                        ? `<span class="stat"><strong>${data.combos_only_on_fallback || 0}</strong> combos exist only on 1×1 guns (excluded)</span>`
-                        : `<span class="stat"><strong>${data.fallback_copies}</strong> gap-fill (1×1)</span>`;
+                    const modeLabels = {preferred_only: 'greedy 3×3 only', pos_gfs: 'POS / GFS'};
+                    const modeLabel = modeLabels[data.mode] || 'greedy full';
+                    let fallbackNote = `<span class="stat"><strong>${data.fallback_copies}</strong> gap-fill (1×1)</span>`;
+                    if (data.mode === 'preferred_only') {
+                        fallbackNote = `<span class="stat"><strong>${data.combos_only_on_fallback || 0}</strong> combos exist only on 1×1 guns (excluded)</span>`;
+                    } else if (data.mode === 'pos_gfs') {
+                        fallbackNote = `<span class="stat"><strong>${data.fallback_copies}</strong> gap-fill (1×1), one per combo no 3×3 gun can roll</span>`;
+                    }
+                    const hist = data.pos_histogram;
+                    const posNote = data.mode === 'pos_gfs' && hist
+                        ? `<span class="stat"><strong>${data.combos_explicit || 0}</strong> combos placed directly</span>
+                           <span class="stat"><strong>${data.combos_credited || 0}</strong> credited from filled grids</span>
+                           <span class="stat">POS 1/2/3-5/6+ <strong>${hist['1']}/${hist['2']}/${hist['3_5']}/${hist['6_plus']}</strong></span>`
+                        : '';
                     summary.innerHTML = `
-                        <span class="stat">mode <strong>${modeLabel}</strong></span>
+                        <span class="stat">solver <strong>${modeLabel}</strong></span>
                         <span class="stat"><strong>${data.plane_size}</strong> unique trait combos</span>
                         <span class="stat"><strong>${data.total_copies}</strong> vault copies</span>
                         <span class="stat">lower bound <strong>${data.lower_bound}</strong></span>
@@ -1418,6 +1614,7 @@
                         <span class="stat"><strong>${data.duplicated_models || 0}</strong> guns need duplicates</span>
                         <span class="stat">max copies of one gun <strong>${data.max_copies_one_model || 0}</strong></span>
                         <span class="stat">unsolved <strong>${data.pairs_unsolved}</strong></span>
+                        ${posNote}
                     `;
 
                     (data.weapons || []).forEach(weapon => {
@@ -1429,6 +1626,7 @@
                         const flags = [
                             weapon.is_tiered ? 'tiered' : null,
                             weapon.is_adept ? 'adept' : null,
+                            weapon.is_vendor6 ? 'vendor 6-perk' : null,
                             weapon.is_craftable ? 'craftable' : null,
                             weapon.is_obtainable ? 'obtainable' : null,
                         ].filter(Boolean).join(', ');
@@ -1446,9 +1644,13 @@
                             </td>
                             <td class="${roleClass}">${roleLabel}</td>
                             <td>${escapeHtml(weapon.type || '')}</td>
+                            <td class="small text-muted">${poolLabel(weapon)}</td>
                             <td><span class="badge bg-secondary">${weapon.copies}</span></td>
                             <td>${weapon.pairs_solved}</td>
+                            <td>${weapon.gfs === undefined ? '—' : weapon.gfs}</td>
                         `;
+                        row.classList.add('vault-weapon-row');
+                        row.addEventListener('click', () => toggleVaultWeaponDetail(row, weapon));
                         body.appendChild(row);
                     });
                 })
@@ -1462,6 +1664,7 @@
                 .then(data => {
                     if (data.error) return;
                     (data.copies || []).forEach(copy => {
+                        (vaultCopiesByHash[copy.hash] = vaultCopiesByHash[copy.hash] || []).push(copy);
                         const row = document.createElement('tr');
                         const roleClass = copy.role === 'preferred'
                             ? 'vault-role-preferred'
@@ -1473,6 +1676,8 @@
                             <td class="small">${escapeHtml((copy.col2_perks || []).join(', '))}</td>
                             <td class="small">${escapeHtml((copy.col3_perks || []).join(', '))}</td>
                             <td>${copy.pairs_solved}</td>
+                            <td>${copy.best_pos === undefined || copy.best_pos === null ? '—' : copy.best_pos}</td>
+                            <td>${copy.gfs === undefined ? '—' : copy.gfs}</td>
                         `;
                         copiesBody.appendChild(row);
                     });

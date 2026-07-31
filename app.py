@@ -538,6 +538,8 @@ def _perfect_vault_mode():
     mode = (request.args.get('mode') or 'full').strip().lower()
     if mode in ('preferred', 'preferred_only', '3x3'):
         return 'preferred_only'
+    if mode in ('pos_gfs', 'pos-gfs', 'posgfs'):
+        return 'pos_gfs'
     return 'full'
 
 
@@ -568,6 +570,11 @@ def perfect_vault_route():
         'max_copies_one_model': result.get('max_copies_one_model'),
         'full_plane_size': result.get('full_plane_size'),
         'combos_only_on_fallback': result.get('combos_only_on_fallback'),
+        'duplicate_copies': result.get('duplicate_copies'),
+        'combos_explicit': result.get('combos_explicit'),
+        'combos_credited': result.get('combos_credited'),
+        'pos_histogram': result.get('pos_histogram'),
+        'top_gfs': result.get('top_gfs'),
         'weapons': result['weapons'],
     })
 

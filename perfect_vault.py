@@ -31,11 +31,21 @@ def is_eligible_weapon(weapon):
 
 
 def is_preferred_weapon(weapon):
-    return bool(weapon.get("is_tiered") or weapon.get("is_adept"))
+    """3x3 packing: tiered, adept, or a Zavala/Drifter/Shaxx 6-perk drop."""
+    return bool(
+        weapon.get("is_tiered")
+        or weapon.get("is_adept")
+        or weapon.get("is_vendor6")
+    )
 
 
 def combo_key(perk_a, perk_b):
-    """Unordered trait combination (order / column does not matter)."""
+    """Unordered trait combination (order / column does not matter).
+
+    Same perk in both columns (A,A) is not a valid combo — returns None.
+    """
+    if perk_a == perk_b:
+        return None
     return frozenset((perk_a, perk_b))
 
 
@@ -45,11 +55,13 @@ def combo_label(combo):
 
 
 def weapon_combos(weapon):
-    return {
-        combo_key(a, b)
-        for a in weapon["col2"]
-        for b in weapon["col3"]
-    }
+    out = set()
+    for a in weapon["col2"]:
+        for b in weapon["col3"]:
+            key = combo_key(a, b)
+            if key is not None:
+                out.add(key)
+    return out
 
 
 def load_weapon_trait_pools(weapon_db_path="weapon_perks.db", eligible_only=True):
@@ -66,11 +78,15 @@ def load_weapon_trait_pools(weapon_db_path="weapon_perks.db", eligible_only=True
             f"weapons missing columns {sorted(missing)}. Run: python weapon_flags.py"
         )
 
+    has_vendor6 = "is_vendor6" in cols
+    vendor6_select = "is_vendor6" if has_vendor6 else "0 AS is_vendor6"
+
     weapons = {}
     for row in conn.execute(
-        """
+        f"""
         SELECT hash, name, type, damage_type, ammo_type, icon, season,
-               is_tiered, is_adept, is_craftable, is_obtainable
+               is_tiered, is_adept, {vendor6_select},
+               is_craftable, is_obtainable
         FROM weapons
         WHERE tier = 'Legendary' AND is_current = 1
         """
@@ -87,6 +103,7 @@ def load_weapon_trait_pools(weapon_db_path="weapon_perks.db", eligible_only=True
             "season": row["season"] or 0,
             "is_tiered": bool(row["is_tiered"]),
             "is_adept": bool(row["is_adept"]),
+            "is_vendor6": bool(row["is_vendor6"]),
             "is_craftable": bool(row["is_craftable"]),
             "is_obtainable": bool(row["is_obtainable"]),
             "col2": set(),
@@ -155,6 +172,8 @@ def load_weapon_trait_pools(weapon_db_path="weapon_perks.db", eligible_only=True
                 winner["is_obtainable"] = True
             if sibling.get("is_tiered"):
                 winner["is_tiered"] = True
+            if sibling.get("is_vendor6"):
+                winner["is_vendor6"] = True
         # Adept raid weapons are often also craftable; keep that if present on winner.
         if any(w.get("is_craftable") and w.get("is_adept") for w in group):
             winner["is_craftable"] = True
@@ -178,6 +197,8 @@ def _ordered_pairs_for_combos(weapon, combos):
     ordered = set()
     for a in weapon["col2"]:
         for b in weapon["col3"]:
+            if a == b:
+                continue
             key = combo_key(a, b)
             if key in combos:
                 ordered.add((a, b))
@@ -310,6 +331,7 @@ def _append_vault_entry(vault, copy_index, weapon, role, move, remaining_after):
         "damage_type": weapon["damage_type"],
         "is_tiered": weapon["is_tiered"],
         "is_adept": weapon["is_adept"],
+        "is_vendor6": weapon.get("is_vendor6", False),
         "is_craftable": weapon["is_craftable"],
         "is_obtainable": weapon["is_obtainable"],
         "icon_url": (
@@ -397,10 +419,12 @@ def compute_perfect_vault(weapon_db_path="weapon_perks.db", mode="full"):
             vault, copy_index, weapon, role, move, len(remaining)
         )
 
+    by_hash = {w["hash"]: w for w in all_eligible}
     by_weapon = {}
     for entry in vault:
         key = entry["hash"]
         if key not in by_weapon:
+            model = by_hash.get(key, {})
             by_weapon[key] = {
                 "hash": entry["hash"],
                 "name": entry["name"],
@@ -410,9 +434,16 @@ def compute_perfect_vault(weapon_db_path="weapon_perks.db", mode="full"):
                 "role": entry["role"],
                 "is_tiered": entry["is_tiered"],
                 "is_adept": entry["is_adept"],
+                "is_vendor6": entry["is_vendor6"],
                 "is_craftable": entry["is_craftable"],
                 "is_obtainable": entry["is_obtainable"],
                 "icon_url": entry["icon_url"],
+                "capacity": (
+                    PREFERRED_PACK if is_preferred_weapon(model) else FALLBACK_PACK
+                ),
+                "col2_pool": sorted(model.get("col2", ())),
+                "col3_pool": sorted(model.get("col3", ())),
+                "pool_combos": len(model.get("all_pairs", ())),
                 "copies": 0,
                 "pairs_solved": 0,
             }
@@ -421,7 +452,12 @@ def compute_perfect_vault(weapon_db_path="weapon_perks.db", mode="full"):
 
     summary_rows = sorted(
         by_weapon.values(),
-        key=lambda r: (-r["copies"], -r["pairs_solved"], r["name"].lower()),
+        key=lambda r: (
+            0 if r["role"] == "preferred" else 1,
+            -r["copies"],
+            -r["pairs_solved"],
+            r["name"].lower(),
+        ),
     )
 
     preferred_copies = sum(1 for e in vault if e["role"] == "preferred")
@@ -465,7 +501,15 @@ def get_perfect_vault(
 ):
     global _cached_results
     if force_refresh or mode not in _cached_results:
-        _cached_results[mode] = compute_perfect_vault(weapon_db_path, mode=mode)
+        if mode == "pos_gfs":
+            # Deferred: pos_gfs_vault imports helpers from this module.
+            from pos_gfs_vault import solve_pos_gfs
+
+            _cached_results[mode] = solve_pos_gfs(weapon_db_path)
+        else:
+            _cached_results[mode] = compute_perfect_vault(
+                weapon_db_path, mode=mode
+            )
     return _cached_results[mode]
 
 

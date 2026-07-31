@@ -141,6 +141,7 @@ def migrate_data():
             is_current BOOLEAN DEFAULT 0,
             is_tiered INTEGER NOT NULL DEFAULT 0,
             is_adept INTEGER NOT NULL DEFAULT 0,
+            is_vendor6 INTEGER NOT NULL DEFAULT 0,
             is_craftable INTEGER NOT NULL DEFAULT 0,
             is_obtainable INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -151,7 +152,13 @@ def migrate_data():
         existing_cols = {
             row[1] for row in weapon_db.execute("PRAGMA table_info(weapons)")
         }
-        for col in ("is_tiered", "is_adept", "is_craftable", "is_obtainable"):
+        for col in (
+            "is_tiered",
+            "is_adept",
+            "is_vendor6",
+            "is_craftable",
+            "is_obtainable",
+        ):
             if col not in existing_cols:
                 weapon_db.execute(
                     f"ALTER TABLE weapons ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0"
